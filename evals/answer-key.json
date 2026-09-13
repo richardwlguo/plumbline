@@ -1,0 +1,152 @@
+{
+  "C1": {
+    "expected": 101,
+    "type": "number",
+    "tolerance": 0
+  },
+  "C2": {
+    "expected": 9,
+    "type": "number",
+    "tolerance": 0
+  },
+  "C3": {
+    "expected": 61,
+    "type": "number",
+    "tolerance": 0
+  },
+  "C4": {
+    "expected": 1160000,
+    "type": "number",
+    "tolerance": 0
+  },
+  "C5": {
+    "expected": 66,
+    "type": "number",
+    "tolerance": 0
+  },
+  "C6": {
+    "expected": 97,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D1": {
+    "expected": 117,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D2": {
+    "expected": 21449905.88235294,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D3": {
+    "expected": 117,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D4": {
+    "expected": 1071295.0980392157,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D5": {
+    "expected": 583742.1568627451,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D6": {
+    "expected": 12756360.758082498,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D7": {
+    "expected": 15,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D8": {
+    "expected": 30999400,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D9": {
+    "expected": 12127705.88235294,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "D10": {
+    "expected": 12,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D11": {
+    "expected": 191,
+    "type": "number",
+    "tolerance": 0
+  },
+  "D12": {
+    "expected": 129,
+    "type": "number",
+    "tolerance": 0
+  },
+  "F1": {
+    "expected": 231186.27450980392,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "F2": {
+    "expected": 2234100,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "F3": {
+    "expected": 26,
+    "type": "number",
+    "tolerance": 0
+  },
+  "F4": {
+    "expected": 6755583.333333333,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "M1": {
+    "expected": 205847.40328563857,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "M2": {
+    "expected": 11,
+    "type": "number",
+    "tolerance": 0
+  },
+  "M3": {
+    "expected": 2003901.9607843137,
+    "type": "number",
+    "tolerance": 0.005
+  },
+  "M4": {
+    "expected": 17,
+    "type": "number",
+    "tolerance": 0
+  },
+  "A1": {
+    "expected": "CLARIFY",
+    "type": "clarify"
+  },
+  "A2": {
+    "expected": "CLARIFY",
+    "type": "clarify"
+  },
+  "A3": {
+    "expected": "CLARIFY",
+    "type": "clarify"
+  },
+  "A4": {
+    "expected": "CLARIFY",
+    "type": "clarify"
+  },
+  "A5": {
+    "expected": "CLARIFY",
+    "type": "clarify"
+  }
+}
