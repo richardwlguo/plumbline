@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx mcp/test-tools.ts"
   },
-  "keywords": [],
+  "keywords": ["mcp", "revops", "benchmark", "llm-eval"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "A RevOps benchmark: raw SQL access vs. a scoped MCP server for answering business questions against deliberately messy CRM data.",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
     "@modelcontextprotocol/sdk": "^1.30.0",

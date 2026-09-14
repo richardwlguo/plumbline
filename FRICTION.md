@@ -1,7 +1,7 @@
 # FRICTION.md
 
-The benchmark result (29% → 93.5%) is the easy half. This file is the other half,
-documenting how big the scope is, where things broke down and where thigns stop 
+The benchmark result (38.7% → 96.8%) is the easy half. This file is the other half,
+documenting how big the scope is, where things broke down and where things stop 
 scaling. 
 
 Format per entry: what happened, why it matters, what a platform would need to do.
@@ -12,7 +12,7 @@ Format per entry: what happened, why it matters, what a platform would need to d
 
 **What happened.** SQL's `current_date` created issues with sourcing truth. The tool
 suite passed 29/29 against the answer key on Sept 11 however, on a re-run on Sept 13
-wiht no code change, it failed 3 checks: customers 117 → 116, contracts in force 129 →
+with no code change, it failed 3 checks: customers 117 → 116, contracts in force 129 →
 128, total ARR down ~$196k since contract's `end_date` had passed overnight.
 
 **Why it matters.** Nothing in the output indicated the number had moved. A
@@ -39,7 +39,7 @@ tool test suite, which scaled is an expensive process.
 
 **Why it matters.** The people who own these definitions are RevOps and Finance,
 not engineers. In this architecture, every definition change is an engineering
-ticket. In a large corperation it would be an issue because the real definition
+ticket. In a large corporation it would be an issue because the real definition
 moves in a Google Sheet, the enforced definition stays whatever was last deployed,
 and nobody notices until a number looks wrong.
 
@@ -108,7 +108,7 @@ persona (RevOps analyst) against one system (a Salesforce-shaped CRM).
 **Why it matters.** The next workflow, support, finance close, CS health,
 starts near zero. Shared definitions would be copy-pasted, then diverge. Six
 workflows in, there is no single place where "customer" is defined, which is the
-exact condition that produced the 29% baseline in the first place.
+exact condition that produced the 38.7% baseline in the first place.
 
 **What a platform needs.** The definition layer built once and reused across
 workflows, with per-workflow scoping on top rather than per-workflow rebuilds.

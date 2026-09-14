@@ -1,6 +1,6 @@
 /**
  * Plumbline — questions.ts
- * The 28-question exam. Both the baseline and the fixed version answer these.
+ * The 31-question exam. Both the baseline and the fixed version answer these.
  *
  * Each question has:
  *   trap   — the specific mistake it is designed to catch (null = clean control)
