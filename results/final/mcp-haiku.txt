@@ -1,0 +1,70 @@
+◇ injected env (2) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env.local // tip: ⌘ override existing { override: true }
+
+condition=mcp  model=claude-haiku-4-5  questions=31
+
+id    ok   answer            expected          note
+--------------------------------------------------------------------------------------
+C1     ✗                  -               101  no answer submitted
+C2     ✗                  -                 9  no answer submitted
+C3     ✗                  -                61  no answer submitted
+C4     ✓          1,160,000         1,160,000  
+C5     ✓                 66                66  
+C6     ✓                 97                97  
+D1     ✗                  -               117  no answer submitted
+D2     ✗                  -        21,449,906  no answer submitted
+D3     ✗                  -               117  no answer submitted
+D4     ✓          1,071,295         1,071,295  
+D5     ✓            583,742           583,742  
+D6     ✓         12,756,361        12,756,361  
+D7     ✗                  -                15  no answer submitted
+D8     ✓         30,999,400        30,999,400  
+D9     ✓         12,127,706        12,127,706  
+D10    ✓                 12                12  
+D11    ✓                191               191  
+D12    ✓                129               129  
+F1     ✗                  -           231,186  no answer submitted
+F2     ✓          2,234,100         2,234,100  
+F3     ✓                 26                26  
+F4     ✓          6,755,583         6,755,583  
+M1     ✓            205,847           205,847  
+M2     ✗                  -                11  no answer submitted
+M3     ✗          1,990,902         2,003,902  off by -0.6%
+M4     ✓                 17                17  
+A1     ✗                  -           CLARIFY  no answer submitted
+A2     ✗                  -           CLARIFY  no answer submitted
+A3     ✗                  -           CLARIFY  no answer submitted
+A4     ✗                  -           CLARIFY  no answer submitted
+A5     ✗                  -           CLARIFY  no answer submitted
+
+======================================================================================
+ACCURACY            16/31  (51.6%)
+  controls          3/6
+  definition traps  7/11
+  fiscal traps      3/4
+  multi-hop         2/4
+  ambiguous (ask)   0/5
+  hygiene           1/1
+TOKENS / QUESTION   5,318
+  input             5,131
+  output            186
+SQL QUERIES / Q     0.0
+COST / QUESTION     $0.0061
+TOTAL RUN COST      $0.19
+======================================================================================
+
+TRAPS THAT CAUGHT IT:
+  D1  is_active__c / customer_status__c / usage instead of contracts; subsidiaries not rolled up
+  D2  accounts.total_arr__c (frozen) or opportunities.amount (TCV) instead of contracts
+  D3  counting subsidiaries as separate customers
+  D7  legacy segment__c (employee bands) instead of sales_segment__c (ARR bands)
+  F1  calendar quarter instead of fiscal (FY starts Feb 1)
+  M2  paying customers with zero product usage
+  M3  departed reps still own open pipeline
+  A1  churn: logo count vs revenue dollars
+  A2  'how big' = customer count or ARR
+  A3  'active' = contracted (finance) or product-using (CS)
+  A4  'bookings' = ARR or TCV
+  A5  'best quarter' = new ARR, total ARR, or deal count
+
+Full transcript saved to results/mcp-claude-haiku-4-5.json
