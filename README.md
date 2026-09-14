@@ -36,7 +36,7 @@ Then it picked the other wrong field and answered 128.
 
 Its own stated assumption:
 
-> "Counted at the account level, not by ARR or contract activity."
+> "customer status c was used as the source of truth for determining current customer status."
 
 It knew the `contracts` table existed and chose not to use it, because nothing in
 the schema says contracts are the source of truth. It also never found
