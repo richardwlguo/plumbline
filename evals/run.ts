@@ -167,10 +167,10 @@ function grade(q: Question, key: any, answer: any): { correct: boolean; note: st
 
 // -------------------------------------------------------------- one question
 async function ask(q: Question, system: string, tools: Anthropic.Tool[]): Promise<{
-  answer: any; inTok: number; outTok: number; turns: number; sql: string[];
+  answer: any; inTok: number; outTok: number; turns: number; sql: string[]; nudges?: number;
 }> {
   const messages: Anthropic.MessageParam[] = [{ role: "user", content: q.question }];
-  let inTok = 0, outTok = 0, turns = 0;
+  let inTok = 0, outTok = 0, turns = 0, nudges = 0;
   const sql: string[] = [];
 
   for (let t = 0; t < MAX_TURNS; t++) {
@@ -183,7 +183,22 @@ async function ask(q: Question, system: string, tools: Anthropic.Tool[]): Promis
     messages.push({ role: "assistant", content: res.content });
 
     const calls = res.content.filter(c => c.type === "tool_use") as Anthropic.ToolUseBlock[];
-    if (calls.length === 0) break;
+
+    // A model that has finished reasoning sometimes writes its answer as prose
+    // instead of calling submit_answer. That is a protocol miss, not a wrong
+    // answer, so nudge it once rather than scoring it as a failure. Applied
+    // identically in every condition.
+    if (calls.length === 0) {
+      if (nudges >= 2) break;
+      nudges++;
+      messages.push({
+        role: "user",
+        content: "Call the submit_answer tool now with your final answer. If the question " +
+                 "is genuinely ambiguous, call it with needs_clarification set to true and " +
+                 "your clarifying_question filled in. Do not reply in plain text.",
+      });
+      continue;
+    }
 
     const results: Anthropic.ToolResultBlockParam[] = [];
     let done = false;
@@ -206,7 +221,7 @@ async function ask(q: Question, system: string, tools: Anthropic.Tool[]): Promis
         });
       }
     }
-    if (done) return { answer, inTok, outTok, turns, sql };
+    if (done) return { answer, inTok, outTok, turns, sql, nudges };
     messages.push({ role: "user", content: results });
   }
   return { answer: null, inTok, outTok, turns, sql };

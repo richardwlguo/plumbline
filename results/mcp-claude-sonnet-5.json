@@ -1,13 +1,13 @@
 {
   "condition": "mcp",
   "model": "claude-sonnet-5",
-  "ranAt": "2026-09-14T01:46:23.117Z",
-  "accuracy": 0.9354838709677419,
-  "correct": 29,
+  "ranAt": "2026-09-14T16:25:17.966Z",
+  "accuracy": 0.967741935483871,
+  "correct": 30,
   "total": 31,
-  "avgTokens": 6676.677419354839,
-  "avgCost": 0.01590948387096774,
-  "totalCost": 0.49319399999999997,
+  "avgTokens": 7465.870967741936,
+  "avgCost": 0.01785845161290323,
+  "totalCost": 0.5536120000000001,
   "results": [
     {
       "id": "C1",
@@ -18,12 +18,12 @@
       "got": 101,
       "askedClarification": false,
       "assumptions": [
-        "Open opportunities are those with state 'open' (not closed-won or closed-lost), as determined by is_won field rather than stage name.",
+        "\"Open\" defined as opportunities in state 'open' (not won or lost), per the CRM's is_won-based status rather than legacy stage names.",
         "Deleted opportunities are excluded from the count."
       ],
       "inputTokens": 6846,
-      "outputTokens": 210,
-      "cost": 0.015792,
+      "outputTokens": 216,
+      "cost": 0.015851999999999998,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -37,11 +37,11 @@
       "got": 9,
       "askedClarification": false,
       "assumptions": [
-        "Count includes all employees with role 'AE', including those no longer active (active_only filter not applied since the question did not specify current employment status)."
+        "Count includes all employees with role 'AE', including any who have departed the company, since 'active_only' was not requested."
       ],
-      "inputTokens": 6882,
-      "outputTokens": 463,
-      "cost": 0.018394,
+      "inputTokens": 6878,
+      "outputTokens": 239,
+      "cost": 0.016146,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -55,12 +55,12 @@
       "got": 61,
       "askedClarification": false,
       "assumptions": [
-        "Counts CRM accounts with billing_country = GB, excluding test accounts and soft-deleted duplicates.",
-        "This is an account-hygiene count, not the customer count (a customer may have multiple accounts, or an account may not be a paying customer)."
+        "Counts real CRM accounts with billing country GB (test accounts and soft-deleted duplicates excluded).",
+        "This is an account count, not the count of paying customers (customers with an active, non-Draft/Cancelled contract covering today)."
       ],
       "inputTokens": 6865,
-      "outputTokens": 233,
-      "cost": 0.016059999999999998,
+      "outputTokens": 229,
+      "cost": 0.01602,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -74,12 +74,12 @@
       "got": 1160000,
       "askedClarification": false,
       "assumptions": [
-        "Value is the largest single contract ARR on record, expressed in that contract's own currency (not converted to USD).",
-        "Sourced from contract book facts (get_contract_facts, metric=max_arr)."
+        "Value is the largest single contract's ARR, expressed in that contract's own currency (not converted to USD).",
+        "Sourced from contract records via the max_arr metric."
       ],
       "inputTokens": 6844,
-      "outputTokens": 221,
-      "cost": 0.015898000000000002,
+      "outputTokens": 209,
+      "cost": 0.015778,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -93,15 +93,13 @@
       "got": 66,
       "askedClarification": false,
       "assumptions": [
-        "Uses count_accounts with filter health_score_below and threshold 50.",
-        "Definition used: 'Real accounts with CSM health score below 50.'",
-        "Test accounts and soft-deleted duplicates are excluded from the count.",
-        "This is an account count, not a customer count (accounts may include non-customer entities such as prospects)."
+        "Counts real accounts only (test accounts and soft-deleted duplicates excluded)",
+        "Uses the CSM health score field, threshold strictly below 50"
       ],
-      "inputTokens": 6866,
-      "outputTokens": 280,
-      "cost": 0.016531999999999998,
-      "turns": 2,
+      "inputTokens": 10527,
+      "outputTokens": 315,
+      "cost": 0.024204,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -114,11 +112,11 @@
       "got": 97,
       "askedClarification": false,
       "assumptions": [
-        "Auto-renew count is based on contracts with the auto-renew flag enabled, as returned by the contract facts tool."
+        "Counts contracts with auto-renew enabled, per Parcelwise's contract facts tool"
       ],
-      "inputTokens": 6824,
-      "outputTokens": 196,
-      "cost": 0.015608,
+      "inputTokens": 6840,
+      "outputTokens": 205,
+      "cost": 0.01573,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -132,13 +130,12 @@
       "got": 117,
       "askedClarification": false,
       "assumptions": [
-        "Customer = company with a contract that is not Draft or Cancelled and that covers today (2026-09-11).",
-        "Subsidiaries are rolled up into their parent company.",
+        "Customer = company with a non-Draft, non-Cancelled contract covering today (2026-09-11); subsidiaries are rolled up into their parent.",
         "Test accounts and soft-deleted duplicates are excluded."
       ],
-      "inputTokens": 6853,
-      "outputTokens": 228,
-      "cost": 0.015986,
+      "inputTokens": 6926,
+      "outputTokens": 296,
+      "cost": 0.016812,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -152,14 +149,14 @@
       "got": 21449905.88,
       "askedClarification": false,
       "assumptions": [
-        "ARR is defined as the sum of contracts.arr for contracts currently in force (covering today, excluding Draft and Cancelled), not from account rollup fields or opportunity amounts.",
-        "Converted to USD using the dated corporate exchange rate in effect today (2026-09-11).",
-        "Includes all segments and all regions (US and non-US)."
+        "ARR = sum of contracts.arr for contracts currently in force today (not Draft or Cancelled, covering today), converted to USD at today's corporate exchange rate.",
+        "ARR comes from contracts only, not from legacy account-level ARR rollup fields or opportunity amounts.",
+        "Figure covers all segments and regions combined (no segment or region filter applied)."
       ],
-      "inputTokens": 6899,
-      "outputTokens": 286,
-      "cost": 0.016658,
-      "turns": 2,
+      "inputTokens": 10723,
+      "outputTokens": 479,
+      "cost": 0.026236,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -172,14 +169,14 @@
       "got": 117,
       "askedClarification": false,
       "assumptions": [
-        "Customer = a company with a contract that is not Draft or Cancelled and that covers today (2026-09-11).",
-        "Subsidiaries are rolled up into their parent company, so each corporate family counts once.",
-        "Test accounts and soft-deleted duplicate accounts are excluded."
+        "Customer = company with a contract that is not Draft or Cancelled and that covers today (2026-09-11).",
+        "Subsidiaries are always rolled up into their parent company (this is the standard, default behavior of the customer count).",
+        "Test accounts and soft-deleted duplicates are excluded."
       ],
-      "inputTokens": 6906,
-      "outputTokens": 265,
-      "cost": 0.016462,
-      "turns": 2,
+      "inputTokens": 10618,
+      "outputTokens": 386,
+      "cost": 0.025096,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -192,15 +189,15 @@
       "got": 1071295.1,
       "askedClarification": false,
       "assumptions": [
-        "FY27-Q2 runs 2026-05-01 to 2026-07-31 per Parcelwise fiscal calendar (FY named for year it ends, starting Feb 1).",
-        "New ARR includes New Business and Expansion/Upsell deals; renewals are excluded, consistent with the definition requested.",
-        "Won status is determined by the is_won flag, so legacy stage names are still counted.",
-        "ARR converted to USD at the corporate rate in effect on each deal's close date."
+        "FY27-Q2 spans 2026-05-01 to 2026-07-31 (Parcelwise fiscal year starts Feb 1, named for the ending year).",
+        "New ARR includes New Business and Expansion/Upsell deals; renewals are excluded as they are not new revenue.",
+        "'Won' status is determined by the is_won flag, so legacy stage names are still counted.",
+        "Deal ARR is converted to USD at the exchange rate in effect on each deal's close date."
       ],
-      "inputTokens": 7030,
-      "outputTokens": 392,
-      "cost": 0.01798,
-      "turns": 2,
+      "inputTokens": 10988,
+      "outputTokens": 602,
+      "cost": 0.027996,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -208,17 +205,23 @@
       "id": "D5",
       "category": "definition",
       "trap": "treating 'Upsell' as separate from 'Expansion' and dropping it",
-      "correct": false,
+      "correct": true,
       "expected": 583742.1568627451,
-      "got": null,
+      "got": 583742.16,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 7075,
-      "outputTokens": 364,
-      "cost": 0.01779,
+      "assumptions": [
+        "FY27 runs 2026-02-01 to 2027-01-31; 'so far' means from FY27 start through today (2026-09-11).",
+        "Only Expansion/Upsell deals counted; New Business excluded.",
+        "Renewals are excluded (not new revenue).",
+        "Won status determined by is_won flag, so legacy stage names are included.",
+        "Amounts converted to USD at the rate in effect on each deal's close date."
+      ],
+      "inputTokens": 7102,
+      "outputTokens": 411,
+      "cost": 0.018314,
       "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D6",
@@ -229,14 +232,14 @@
       "got": 12756360.76,
       "askedClarification": false,
       "assumptions": [
-        "New ARR for FY26 covers 2025-02-01 to 2026-01-31 (fiscal year named for the year it ends).",
-        "Includes New Business and Expansion/Upsell deals; renewals are excluded as they are not new revenue.",
+        "FY26 runs 2025-02-01 to 2026-01-31 per Parcelwise's fiscal calendar (FY named for year it ends).",
+        "New ARR includes New Business and Expansion/Upsell; Renewals are excluded as they are not new revenue.",
         "Won status determined by is_won flag, so legacy stage names are included.",
-        "Deal ARR converted to USD at the rate in effect on each deal's close date."
+        "Deal ARR converted to USD at the rate in effect on the close date."
       ],
-      "inputTokens": 6959,
-      "outputTokens": 278,
-      "cost": 0.016698,
+      "inputTokens": 7023,
+      "outputTokens": 418,
+      "cost": 0.018226,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -250,13 +253,13 @@
       "got": 15,
       "askedClarification": false,
       "assumptions": [
-        "Customer = company with a non-Draft, non-Cancelled contract covering today; subsidiaries rolled up to parent.",
-        "Test accounts and soft-deleted duplicates excluded.",
-        "Segment is based on the current ARR-band field (not the retired employee-count field), as of today (2026-09-11)."
+        "Customer = company with a contract that is not Draft or Cancelled and that covers today; subsidiaries are rolled up into their parent company.",
+        "Test accounts and soft-deleted duplicate accounts are excluded.",
+        "Segment is based on the current contracted ARR-band field as of today (2026-09-11), not the retired employee-count field."
       ],
-      "inputTokens": 6890,
-      "outputTokens": 252,
-      "cost": 0.016300000000000002,
+      "inputTokens": 6933,
+      "outputTokens": 323,
+      "cost": 0.017096,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -270,14 +273,14 @@
       "got": 30999400,
       "askedClarification": false,
       "assumptions": [
-        "\"Bookings\"/deal value here uses the ARR (annualized) basis, as explicitly requested, not total contract value (TCV).",
-        "Includes all won deals across all time (no period filter specified).",
-        "Multi-year deals are counted at their annual value, not their full contract term value.",
-        "Figure is in deal currency as returned by the tool (Parcelwise reporting is generally USD)."
+        "Bookings measured on ARR basis (annualized value), as explicitly requested — not total contract value (TCV).",
+        "Multi-year deals are counted at their annual value, not their full multi-year term value.",
+        "Figure covers all time (no period filter applied) and includes all won deals.",
+        "Unit as returned by the tool is 'deal currency' (treated here as USD, consistent with other USD-denominated figures)."
       ],
-      "inputTokens": 6864,
-      "outputTokens": 283,
-      "cost": 0.016558,
+      "inputTokens": 6896,
+      "outputTokens": 322,
+      "cost": 0.017012,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -291,14 +294,14 @@
       "got": 12127705.88,
       "askedClarification": false,
       "assumptions": [
-        "ARR = sum of contracts.arr for contracts in force today (excludes Draft/Cancelled), converted to USD at today's dated corporate rate.",
-        "Region 'non_us' reflects the account's billing country outside the US.",
-        "ARR is sourced from contracts, not from account rollup fields or opportunity amounts."
+        "ARR = sum of contracts.arr for contracts in force today (excludes Draft and Cancelled), for accounts billed outside the US.",
+        "ARR comes from the contracts table, not account rollup fields or opportunity amounts.",
+        "Non-USD contract values converted to USD at the dated corporate exchange rate (today's rate)."
       ],
-      "inputTokens": 6966,
-      "outputTokens": 359,
-      "cost": 0.017522,
-      "turns": 2,
+      "inputTokens": 10753,
+      "outputTokens": 466,
+      "cost": 0.026166000000000002,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -311,13 +314,13 @@
       "got": 12,
       "askedClarification": false,
       "assumptions": [
-        "Uses the account-hygiene tool's 'product_active_without_contract' filter: accounts with product usage last month but no contract currently in force (e.g. pilots/trials).",
+        "Used the 'product_active_without_contract' definition: accounts with product usage last month but no contract in force (i.e., pilots/trials).",
         "These accounts are not counted as customers since they lack an in-force contract.",
-        "Test accounts and soft-deleted duplicates are excluded per standard account counting rules."
+        "Test accounts and soft-deleted duplicates are excluded, per standard account hygiene rules."
       ],
-      "inputTokens": 6948,
-      "outputTokens": 370,
-      "cost": 0.017596,
+      "inputTokens": 6920,
+      "outputTokens": 333,
+      "cost": 0.01717,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -331,12 +334,12 @@
       "got": 191,
       "askedClarification": false,
       "assumptions": [
-        "Counts CRM accounts excluding test accounts and soft-deleted duplicates.",
-        "This is an account-hygiene count, not the customer count (customers require an active, non-Draft/Cancelled contract covering today)."
+        "Count reflects real accounts in the CRM, excluding test accounts and soft-deleted duplicates.",
+        "This is an account count (a CRM-hygiene measure), not the customer count, which is a different metric based on active contracts."
       ],
       "inputTokens": 6864,
-      "outputTokens": 222,
-      "cost": 0.015948,
+      "outputTokens": 225,
+      "cost": 0.015978,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -350,12 +353,12 @@
       "got": 129,
       "askedClarification": false,
       "assumptions": [
-        "In-force contracts are those covering today's date (2026-09-11), excluding Draft and Cancelled statuses.",
-        "Counted per contract, not per customer (a customer could have multiple in-force contracts)."
+        "'In force' = contracts covering today, excluding Draft and Cancelled statuses.",
+        "Counted per contract, not per customer (a customer could have multiple contracts)."
       ],
       "inputTokens": 6863,
-      "outputTokens": 223,
-      "cost": 0.015956,
+      "outputTokens": 224,
+      "cost": 0.015966,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -369,14 +372,14 @@
       "got": 231186.27,
       "askedClarification": false,
       "assumptions": [
-        "FY27-Q3 runs 2026-08-01 to 2026-10-31; 'to date' means up to today, 2026-09-11.",
-        "New ARR includes New Business and Expansion/Upsell; Renewals are excluded.",
-        "Won status determined by is_won, including legacy stage names.",
-        "Amounts converted to USD at the rate in effect on each deal's close date."
+        "FY27-Q3 runs 2026-08-01 to 2026-10-31; 'to date' means stopping at today, 2026-09-11.",
+        "New ARR includes New Business and Expansion/Upsell; Renewals are excluded as they are not new revenue.",
+        "Won status is determined by is_won flag, so legacy stage names are included.",
+        "Deal ARR converted to USD at the rate in effect on the close date."
       ],
-      "inputTokens": 7014,
-      "outputTokens": 325,
-      "cost": 0.017278,
+      "inputTokens": 7009,
+      "outputTokens": 332,
+      "cost": 0.017338,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -390,13 +393,14 @@
       "got": 2234100,
       "askedClarification": false,
       "assumptions": [
-        "New ARR = New Business + Expansion/Upsell, won deals only (is_won=true, including legacy stage names); renewals are excluded.",
-        "FY27-Q1 = 2026-02-01 to 2026-04-30.",
-        "Amounts converted to USD at the rate in effect on the close date."
+        "New ARR for FY27-Q1 (2026-02-01 to 2026-04-30), in USD.",
+        "Includes New Business and Expansion/Upsell; renewals are excluded because they are not new revenue.",
+        "Won status is determined by is_won, so legacy stage names are still counted.",
+        "Deal ARR converted to USD at the rate in effect on the close date."
       ],
-      "inputTokens": 7009,
-      "outputTokens": 318,
-      "cost": 0.017197999999999998,
+      "inputTokens": 7016,
+      "outputTokens": 390,
+      "cost": 0.017932,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -410,13 +414,13 @@
       "got": 26,
       "askedClarification": false,
       "assumptions": [
-        "'Active contracts' interpreted as contracts in force today (excluding Draft and Cancelled), consistent with the get_renewals tool definition.",
-        "FY27-Q4 = 2026-11-01 to 2027-01-31.",
-        "Count reflects contracts expiring within that window as of today, 2026-09-11."
+        "FY27-Q4 is defined as 2026-11-01 to 2027-01-31 (Parcelwise fiscal year starts Feb 1, named for the year it ends).",
+        "'Active contracts' means contracts in force today (excluding Draft and Cancelled), consistent with the get_renewals tool definition.",
+        "Result counts contracts whose expiration date falls within FY27-Q4."
       ],
-      "inputTokens": 7072,
-      "outputTokens": 461,
-      "cost": 0.018754,
+      "inputTokens": 7195,
+      "outputTokens": 608,
+      "cost": 0.020470000000000002,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -430,14 +434,14 @@
       "got": 6755583.33,
       "askedClarification": false,
       "assumptions": [
-        "Pipeline defined as open (not closed) opportunities only, forecast category 'Omitted' excluded.",
-        "Renewal opportunities are excluded, leaving only New Business and Expansion/Upsell.",
-        "Value is measured as annualized ARR, not total contract value (TCV).",
-        "Period is FY27-Q4, 2026-11-01 to 2027-01-31."
+        "Pipeline defined as open new-business and expansion opportunities for FY27-Q4 (2026-11-01 to 2027-01-31), excluding renewals.",
+        "Deals forecast as Omitted are excluded.",
+        "Value measured in annualized ARR (USD), not total contract value.",
+        "Only currently open deals are counted (not yet closed won/lost)."
       ],
-      "inputTokens": 7025,
-      "outputTokens": 350,
-      "cost": 0.01755,
+      "inputTokens": 7033,
+      "outputTokens": 353,
+      "cost": 0.017596,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -451,14 +455,13 @@
       "got": 205847.4,
       "askedClarification": false,
       "assumptions": [
-        "ARR = sum of contracts.arr for contracts in force today (excludes Draft and Cancelled contracts), converted to USD at the dated corporate rate.",
-        "ARR is drawn from contracts, not account rollup fields or opportunity amounts.",
+        "ARR is derived from in-force contracts (not account rollup fields or opportunity amounts), converted to USD at today's dated corporate rate.",
         "Segment is based on the current ARR-band field, as of today.",
-        "Average is computed per parent-level customer (subsidiaries rolled up into parent), in the Mid-Market segment."
+        "Average is computed per parent-level customer (subsidiaries rolled up into parent) among current customers (active, non-Draft/Cancelled contracts covering today, excluding test accounts and soft-deleted duplicates) in the Mid-Market segment."
       ],
       "inputTokens": 6947,
-      "outputTokens": 326,
-      "cost": 0.017154,
+      "outputTokens": 335,
+      "cost": 0.017244,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -472,13 +475,13 @@
       "got": 11,
       "askedClarification": false,
       "assumptions": [
-        "Customer = company with a non-Draft, non-Cancelled contract covering today (2026-09-11); subsidiaries rolled up into parent.",
-        "Test accounts and soft-deleted duplicates are excluded.",
-        "'Zero active users last month' = paying customers with no active product usage during the last full calendar month (August 2026)."
+        "Customer = company with a non-Draft, non-Cancelled contract covering today; subsidiaries rolled up to parent.",
+        "Test accounts and soft-deleted duplicates excluded.",
+        "'Zero active users last month' = paying customers with no active product usage over the last full calendar month."
       ],
-      "inputTokens": 7085,
-      "outputTokens": 468,
-      "cost": 0.01885,
+      "inputTokens": 7013,
+      "outputTokens": 382,
+      "cost": 0.017846,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -492,14 +495,14 @@
       "got": 1990901.96,
       "askedClarification": false,
       "assumptions": [
-        "Open pipeline = open new-business and expansion opportunities across all close dates, excluding deals forecast as Omitted, and excluding renewals.",
-        "Measured in annualized ARR value, not total contract value (TCV).",
-        "Restricted to opportunities owned by reps who are no longer active employees (inactive_owner filter).",
-        "Values converted/reported in USD."
+        "Pipeline defined as open new-business and expansion opportunities across all close dates, excluding deals forecast as Omitted, and excluding renewals.",
+        "Value is annualized (ARR), not total contract value.",
+        "Restricted to opportunities owned by reps who are no longer active employees.",
+        "Figure is in USD."
       ],
       "inputTokens": 6921,
-      "outputTokens": 277,
-      "cost": 0.016612000000000002,
+      "outputTokens": 261,
+      "cost": 0.016452,
       "turns": 2,
       "sqlQueries": [],
       "note": "off by -0.6%"
@@ -513,16 +516,14 @@
       "got": 17,
       "askedClarification": false,
       "assumptions": [
-        "Churn measured on a logo (customer count) basis, not revenue.",
-        "Trailing window = last 12 months from 2026-09-11.",
-        "Logo churn defined as distinct customers whose contract expired with no replacement within 60 days.",
+        "Logo churn = distinct customers whose contract expired in the trailing 12 months (2025-09-11 to 2026-09-11) with no replacement contract.",
         "A contract gap of 60 days or less is treated as a renewal delay, not churn.",
-        "Counted at the parent-company level (subsidiaries rolled up into parent)."
+        "Counted at the parent-company level (subsidiaries roll up to parent)."
       ],
-      "inputTokens": 6980,
-      "outputTokens": 338,
-      "cost": 0.01734,
-      "turns": 2,
+      "inputTokens": 10783,
+      "outputTokens": 459,
+      "cost": 0.026156,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -535,12 +536,13 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "\"Churn\" at Parcelwise has two distinct definitions: logo churn (count of customers lost) and revenue churn (ARR lost in USD), and the get_churn tool requires specifying one.",
-        "Assumed 'last quarter' would mean the most recently completed fiscal quarter (FY27-Q2, i.e. a 3-month trailing window), pending confirmation once basis is clarified."
+        "Churn at Parcelwise has two distinct official meanings: 'logo' (count of customers lost) and 'revenue' (ARR lost in USD) — the tool requires specifying one.",
+        "The churn tool measures a trailing window in months from today, not a fixed fiscal-quarter calendar boundary, so 'last quarter' would need to be approximated as trailing_months=3 unless a different window is intended.",
+        "A contract gap of 60 days or less is not counted as churn under either definition."
       ],
       "inputTokens": 3355,
-      "outputTokens": 659,
-      "cost": 0.0133,
+      "outputTokens": 952,
+      "cost": 0.01623,
       "turns": 1,
       "sqlQueries": [],
       "note": "asked, as required"
@@ -554,12 +556,11 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "'How big' is ambiguous at Parcelwise: it could mean number of customers (customer_count) or total ARR (arr) in the Enterprise segment.",
-        "No basis was specified by the user, so no default was assumed."
+        "\"How big\" a segment is ambiguous at Parcelwise: it can mean customer_count or arr, and there is no default."
       ],
       "inputTokens": 3355,
-      "outputTokens": 238,
-      "cost": 0.00909,
+      "outputTokens": 226,
+      "cost": 0.008969999999999999,
       "turns": 1,
       "sqlQueries": [],
       "note": "asked, as required"
@@ -573,12 +574,12 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "\"Active\" is an ambiguous term at Parcelwise: it can mean 'under contract' or 'using the product'.",
-        "No aggregate/answer computed pending clarification."
+        "\"Active\" is ambiguous at Parcelwise: it can mean 'under contract' (a current customer) or 'using the product' (product usage), and these can diverge (e.g., paying customers with zero usage, or product usage without a contract).",
+        "No aggregation or filter (segment, country) was specified, so none was assumed."
       ],
       "inputTokens": 3353,
-      "outputTokens": 272,
-      "cost": 0.009426,
+      "outputTokens": 364,
+      "cost": 0.010346000000000001,
       "turns": 1,
       "sqlQueries": [],
       "note": "asked, as required"
@@ -592,12 +593,12 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "\"Bookings\" is ambiguous at Parcelwise: basis='arr' gives annualized value of won deals, basis='tcv' gives total contract value across the full multi-year term.",
-        "These two bases can differ substantially for multi-year deals, so the answer depends on which is intended."
+        "Bookings is ambiguous at Parcelwise: 'arr' basis = annualized value of won deals; 'tcv' basis = total contract value across full multi-year term. These can differ substantially on multi-year deals.",
+        "No basis was specified by the user, so clarification is needed before computing a number."
       ],
       "inputTokens": 3358,
-      "outputTokens": 321,
-      "cost": 0.009926,
+      "outputTokens": 318,
+      "cost": 0.009895999999999999,
       "turns": 1,
       "sqlQueries": [],
       "note": "asked, as required"
@@ -611,12 +612,12 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "\"Best\" has no single agreed-upon metric at Parcelwise (could be new ARR, bookings-ARR, bookings-TCV, pipeline generated, renewals closed, etc.), so it cannot be determined without clarification.",
-        "\"This year\" could refer to FY26 (ended 2026-01-31) or FY27 (current fiscal year, in progress, only through Q3 partially complete as of 2026-09-11) - this would also need clarification."
+        "\"Best\" quarter has no single agreed metric at Parcelwise (could mean new ARR, bookings-ARR, bookings-TCV, pipeline generated, or churn avoided), so it cannot be answered without clarification.",
+        "\"This year\" could mean fiscal year FY27 (Feb 2026-Jan 2027) or a trailing 12-month window, which also needs clarification."
       ],
       "inputTokens": 3354,
-      "outputTokens": 427,
-      "cost": 0.010978000000000002,
+      "outputTokens": 463,
+      "cost": 0.011338,
       "turns": 1,
       "sqlQueries": [],
       "note": "asked, as required"

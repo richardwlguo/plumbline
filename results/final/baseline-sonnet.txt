@@ -1,4 +1,4 @@
-◇ injected env (2) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (2) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Schema dump: 2347 characters (~634 tokens)
 
 condition=baseline  model=claude-sonnet-5  questions=31
@@ -11,52 +11,51 @@ C3     ✗                 64                61  off by +4.9%
 C4     ✓          1,160,000         1,160,000  
 C5     ✗                 69                66  off by +4.5%
 C6     ✓                 97                97  
-D1     ✗                124               117  off by +6.0%
+D1     ✗                128               117  off by +9.4%
 D2     ✓         21,449,906        21,449,906  
 D3     ✗                113               117  off by -3.4%
-D4     ✗                  -         1,071,295  no answer submitted
+D4     ✓          1,071,295         1,071,295  
 D5     ✓            583,742           583,742  
 D6     ✗         12,246,545        12,756,361  off by -4.0%
 D7     ✗                 19                15  off by +26.7%
-D8     ✗         32,639,602        30,999,400  off by +5.3%
+D8     ✗         32,337,157        30,999,400  off by +4.3%
 D9     ✗          3,828,264        12,127,706  off by -68.4%
 D10    ✓                 12                12  
 D11    ✗                197               191  off by +3.1%
 D12    ✓                129               129  
 F1     ✗                  0           231,186  off by -100.0%
-F2     ✗          2,193,106         2,234,100  off by -1.8%
-F3     ✗                 31                26  off by +19.2%
+F2     ✗              ASKED         2,234,100  asked for clarification on an answerable question
+F3     ✗                  3                26  off by -88.5%
 F4     ✗          4,549,902         6,755,583  off by -32.6%
 M1     ✗            152,431           205,847  off by -25.9%
-M2     ✗                 14                11  off by +27.3%
+M2     ✗                 13                11  off by +18.2%
 M3     ✗          2,577,799         2,003,902  off by +28.6%
-M4     ✗                  -                17  no answer submitted
-A1     ✗            644,700           CLARIFY  answered 644700 instead of asking
+M4     ✓                 17                17  
+A1     ✗            543,725           CLARIFY  answered 543725 instead of asking
 A2     ✓              ASKED           CLARIFY  asked, as required
 A3     ✗                 63           CLARIFY  answered 63 instead of asking
-A4     ✗          2,405,129           CLARIFY  answered 2405129 instead of asking
+A4     ✓              ASKED           CLARIFY  asked, as required
 A5     ✗                  2           CLARIFY  answered 2 instead of asking
 
 ======================================================================================
-ACCURACY            9/31  (29.0%)
+ACCURACY            12/31  (38.7%)
   controls          4/6
-  definition traps  4/11
+  definition traps  5/11
   fiscal traps      0/4
-  multi-hop         0/4
-  ambiguous (ask)   1/5
+  multi-hop         1/4
+  ambiguous (ask)   2/5
   hygiene           0/1
-TOKENS / QUESTION   21,918
-  input             19,876
-  output            2,042
-SQL QUERIES / Q     5.5
-COST / QUESTION     $0.0602
-TOTAL RUN COST      $1.87
+TOKENS / QUESTION   19,535
+  input             17,639
+  output            1,895
+SQL QUERIES / Q     5.1
+COST / QUESTION     $0.0542
+TOTAL RUN COST      $1.68
 ======================================================================================
 
 TRAPS THAT CAUGHT IT:
   D1  is_active__c / customer_status__c / usage instead of contracts; subsidiaries not rolled up
   D3  counting subsidiaries as separate customers
-  D4  including Renewal deals in new ARR
   D6  stage_name = 'Closed Won' misses legacy stage names
   D7  legacy segment__c (employee bands) instead of sales_segment__c (ARR bands)
   D8  opportunities.amount is TCV across the full multi-year term, not annual
@@ -69,10 +68,8 @@ TRAPS THAT CAUGHT IT:
   M1  combines segment definition + contract-based ARR
   M2  paying customers with zero product usage
   M3  departed reps still own open pipeline
-  M4  churn definition + 60-day grace period
   A1  churn: logo count vs revenue dollars
   A3  'active' = contracted (finance) or product-using (CS)
-  A4  'bookings' = ARR or TCV
   A5  'best quarter' = new ARR, total ARR, or deal count
 
 Full transcript saved to results/baseline-claude-sonnet-5.json

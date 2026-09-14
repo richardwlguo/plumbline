@@ -1,61 +1,70 @@
 {
   "condition": "mcp",
   "model": "claude-haiku-4-5",
-  "ranAt": "2026-09-14T05:21:07.216Z",
-  "accuracy": 0.5161290322580645,
-  "correct": 16,
+  "ranAt": "2026-09-14T16:28:32.160Z",
+  "accuracy": 0.967741935483871,
+  "correct": 30,
   "total": 31,
-  "avgTokens": 5317.548387096775,
-  "avgCost": 0.006063225806451612,
-  "totalCost": 0.18796,
+  "avgTokens": 7011.322580645161,
+  "avgCost": 0.008076612903225807,
+  "totalCost": 0.250375,
   "results": [
     {
       "id": "C1",
       "category": "control",
       "trap": null,
-      "correct": false,
+      "correct": true,
       "expected": 101,
-      "got": null,
+      "got": 101,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5547,
-      "outputTokens": 96,
-      "cost": 0.006027,
-      "turns": 2,
+      "assumptions": [
+        "Opportunities counted are those in state 'open', determined by is_won field rather than stage name.",
+        "Deleted opportunities are excluded from the count."
+      ],
+      "inputTokens": 8460,
+      "outputTokens": 212,
+      "cost": 0.00952,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "C2",
       "category": "control",
       "trap": null,
-      "correct": false,
+      "correct": true,
       "expected": 9,
-      "got": null,
+      "got": 9,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5548,
-      "outputTokens": 115,
-      "cost": 0.006123,
-      "turns": 2,
+      "assumptions": [
+        "Employee count includes all users with role AE, both active and inactive/departed employees"
+      ],
+      "inputTokens": 8479,
+      "outputTokens": 219,
+      "cost": 0.009574000000000001,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "C3",
       "category": "control",
       "trap": null,
-      "correct": false,
+      "correct": true,
       "expected": 61,
-      "got": null,
+      "got": 61,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5560,
-      "outputTokens": 113,
-      "cost": 0.006125,
-      "turns": 2,
+      "assumptions": [
+        "Test accounts and soft-deleted duplicates are excluded",
+        "This is an account count, not a customer count",
+        "Billing country filter uses ISO country code GB for the United Kingdom"
+      ],
+      "inputTokens": 8524,
+      "outputTokens": 261,
+      "cost": 0.009829000000000001,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "C4",
@@ -66,12 +75,11 @@
       "got": 1160000,
       "askedClarification": false,
       "assumptions": [
-        "The metric is the largest single contract ARR in its own currency (not currency-converted)",
-        "This is the maximum ARR from all in-force contracts"
+        "Largest single contract ARR, in its own currency, not currency-converted"
       ],
       "inputTokens": 5557,
-      "outputTokens": 211,
-      "cost": 0.006612,
+      "outputTokens": 195,
+      "cost": 0.0065320000000000005,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -85,13 +93,13 @@
       "got": 66,
       "askedClarification": false,
       "assumptions": [
-        "Real accounts with CSM health score below 50",
-        "Test accounts and soft-deleted duplicates excluded"
+        "Accounts are real accounts (test accounts and soft-deleted duplicates excluded)",
+        "CSM health score below 50 is measured against the health_score_below field in the CRM"
       ],
-      "inputTokens": 5569,
-      "outputTokens": 205,
-      "cost": 0.006594,
-      "turns": 2,
+      "inputTokens": 8501,
+      "outputTokens": 240,
+      "cost": 0.009701,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -104,11 +112,11 @@
       "got": 97,
       "askedClarification": false,
       "assumptions": [
-        "Auto-renew count includes all contracts in the CRM with auto-renew enabled."
+        "Auto-renew contracts are those with auto-renew enabled in the contract record"
       ],
       "inputTokens": 5538,
-      "outputTokens": 191,
-      "cost": 0.0064930000000000005,
+      "outputTokens": 185,
+      "cost": 0.006463,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -117,49 +125,62 @@
       "id": "D1",
       "category": "definition",
       "trap": "is_active__c / customer_status__c / usage instead of contracts; subsidiaries not rolled up",
-      "correct": false,
+      "correct": true,
       "expected": 117,
-      "got": null,
+      "got": 117,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5536,
-      "outputTokens": 101,
-      "cost": 0.006041,
-      "turns": 2,
+      "assumptions": [
+        "Customer is defined as a company with a non-Draft, non-Cancelled contract covering today (2026-09-11)",
+        "Subsidiaries are rolled up into their parent company",
+        "Test accounts and soft-deleted duplicates are excluded"
+      ],
+      "inputTokens": 8466,
+      "outputTokens": 240,
+      "cost": 0.009666,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D2",
       "category": "definition",
       "trap": "accounts.total_arr__c (frozen) or opportunities.amount (TCV) instead of contracts",
-      "correct": false,
+      "correct": true,
       "expected": 21449905.88235294,
-      "got": null,
+      "got": 21449905.88,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5592,
-      "outputTokens": 129,
-      "cost": 0.0062369999999999995,
-      "turns": 2,
+      "assumptions": [
+        "ARR = sum of contracts.arr for contracts in force today, converted to USD at the dated corporate rate.",
+        "Contracts in force means contracts that are not Draft or Cancelled and that cover today (2026-09-11).",
+        "Legacy account ARR rollup and opportunity amounts were not used.",
+        "Currency converted at the rate in effect today."
+      ],
+      "inputTokens": 8551,
+      "outputTokens": 294,
+      "cost": 0.010020999999999999,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D3",
       "category": "definition",
       "trap": "counting subsidiaries as separate customers",
-      "correct": false,
+      "correct": true,
       "expected": 117,
-      "got": null,
+      "got": 117,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5552,
-      "outputTokens": 95,
-      "cost": 0.006026999999999999,
-      "turns": 2,
+      "assumptions": [
+        "Customer is defined as a company with a contract that is not Draft or Cancelled and that covers today (2026-09-11).",
+        "Subsidiaries are rolled up into their parent company.",
+        "Test accounts and soft-deleted duplicates are excluded."
+      ],
+      "inputTokens": 8492,
+      "outputTokens": 245,
+      "cost": 0.009717,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D4",
@@ -170,15 +191,15 @@
       "got": 1071295.1,
       "askedClarification": false,
       "assumptions": [
-        "New ARR includes New Business, Expansion, and Upsell (legacy synonym for Expansion); renewals are excluded.",
-        "Won status comes from is_won, so deals with legacy stage names are included.",
-        "Deal ARR converted to USD at the rate in effect on the close date.",
-        "FY27-Q2 period is May 1 – July 31, 2026."
+        "New ARR is defined as New Business, Expansion, and Upsell (legacy synonym for Expansion), excluding Renewals.",
+        "Won status comes from is_won field, so legacy stage names are still counted.",
+        "Deal ARR was converted to USD at the rate in effect on each deal's close date.",
+        "FY27-Q2 covers 2026-05-01 to 2026-07-31."
       ],
-      "inputTokens": 5667,
-      "outputTokens": 282,
-      "cost": 0.007077,
-      "turns": 2,
+      "inputTokens": 8719,
+      "outputTokens": 320,
+      "cost": 0.010319,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -191,15 +212,15 @@
       "got": 583742.16,
       "askedClarification": false,
       "assumptions": [
-        "Expansion ARR includes both Expansion and Upsell deal types.",
-        "Won status comes from is_won field, so legacy stage names are still counted.",
-        "ARR converted to USD at the rate in effect on the close date.",
-        "FY27 began 2026-02-01; measurement runs from that date through today (2026-09-11).",
-        "Renewals are excluded."
+        "Expansion ARR includes deals typed as both 'Expansion' and 'Upsell' (legacy synonym)",
+        "Won status determined by is_won field, so legacy stage names are included",
+        "Deal ARR converted to USD at the rate in effect on the close date",
+        "FY27 runs from 2026-02-01 to 2027-01-31; 'to_date' parameter captures closed expansion deals through today 2026-09-11",
+        "Renewals are excluded from this calculation"
       ],
       "inputTokens": 5712,
-      "outputTokens": 323,
-      "cost": 0.007327,
+      "outputTokens": 341,
+      "cost": 0.007417,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -210,17 +231,17 @@
       "trap": "stage_name = 'Closed Won' misses legacy stage names",
       "correct": true,
       "expected": 12756360.758082498,
-      "got": 12756361,
+      "got": 12756360.76,
       "askedClarification": false,
       "assumptions": [
-        "New ARR includes New Business, Expansion, and Upsell (legacy synonym for Expansion). Renewals are excluded.",
-        "Won status determined by is_won field, so legacy stage names are still counted.",
-        "Deal ARR was converted to USD at the dated corporate rate in effect on each deal's close date.",
-        "FY26 runs 2025-02-01 to 2026-01-31."
+        "FY26 runs 2025-02-01 to 2026-01-31",
+        "New ARR includes New Business, Expansion, and Upsell; renewals are excluded",
+        "Deal ARR is converted to USD at the rate in effect on the close date",
+        "Won status comes from is_won field, so legacy stage names are included"
       ],
       "inputTokens": 5642,
-      "outputTokens": 279,
-      "cost": 0.007037,
+      "outputTokens": 255,
+      "cost": 0.006917,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -229,17 +250,22 @@
       "id": "D7",
       "category": "definition",
       "trap": "legacy segment__c (employee bands) instead of sales_segment__c (ARR bands)",
-      "correct": false,
+      "correct": true,
       "expected": 15,
-      "got": null,
+      "got": 15,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5576,
-      "outputTokens": 137,
-      "cost": 0.006261,
-      "turns": 2,
+      "assumptions": [
+        "Customer = company with a non-Draft, non-Cancelled contract covering today; subsidiaries rolled up to parent.",
+        "Test accounts and soft-deleted duplicates excluded.",
+        "Segment taken from the current ARR-band field, as of today.",
+        "Enterprise segment identified by current ARR band."
+      ],
+      "inputTokens": 8541,
+      "outputTokens": 267,
+      "cost": 0.009876,
+      "turns": 3,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D8",
@@ -250,13 +276,13 @@
       "got": 30999400,
       "askedClarification": false,
       "assumptions": [
-        "Total annualized recurring revenue (ARR) of won deals, not total contract value (TCV)",
-        "Multi-year deals counted at their annual value, not full term value",
-        "Converted to USD at the dated corporate rate"
+        "Total value of won deals measured on an ARR (annualized recurring revenue) basis, not total contract value (TCV)",
+        "Multi-year deals are counted at their annual value, not their full term value",
+        "All won deals across all time periods are included"
       ],
       "inputTokens": 5579,
-      "outputTokens": 224,
-      "cost": 0.006699,
+      "outputTokens": 231,
+      "cost": 0.0067339999999999995,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -270,13 +296,14 @@
       "got": 12127705.88,
       "askedClarification": false,
       "assumptions": [
-        "ARR is calculated from contracts in force (covering today), excluding Draft and Cancelled contracts",
-        "Currency is converted to USD using the dated corporate rate",
-        "Non-US customers are those billed outside the United States"
+        "ARR is calculated from contracts in force today (excluding Draft and Cancelled).",
+        "ARR comes from contracts, never from account rollup fields or opportunity amounts.",
+        "Currencies are converted to USD at the dated corporate rate in effect today.",
+        "'Outside the US' is defined as non_us billing country."
       ],
-      "inputTokens": 5606,
-      "outputTokens": 237,
-      "cost": 0.006791,
+      "inputTokens": 5589,
+      "outputTokens": 240,
+      "cost": 0.006789,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -290,12 +317,13 @@
       "got": 12,
       "askedClarification": false,
       "assumptions": [
-        "Product active without contract is defined as accounts with product usage last month but no contract in force (pilots and trials)",
-        "These accounts are not counted as customers"
+        "Product active accounts are those with usage last month",
+        "No active contract means no contract in force (Draft and Cancelled contracts excluded)",
+        "These 12 accounts are pilots and trials, not counted as customers"
       ],
-      "inputTokens": 5592,
-      "outputTokens": 248,
-      "cost": 0.0068319999999999995,
+      "inputTokens": 5576,
+      "outputTokens": 242,
+      "cost": 0.006786,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -309,13 +337,13 @@
       "got": 191,
       "askedClarification": false,
       "assumptions": [
-        "Real accounts defined as all accounts in the CRM excluding test accounts and soft-deleted duplicates",
-        "This count includes all accounts regardless of contract status or active usage"
+        "Real accounts are defined as accounts in the CRM excluding test accounts and soft-deleted duplicates.",
+        "This is an account count in the CRM, not a customer count under contract."
       ],
-      "inputTokens": 5568,
-      "outputTokens": 207,
-      "cost": 0.0066029999999999995,
-      "turns": 2,
+      "inputTokens": 8524,
+      "outputTokens": 250,
+      "cost": 0.009774,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -328,12 +356,12 @@
       "got": 129,
       "askedClarification": false,
       "assumptions": [
-        "In-force contracts are those covering today, excluding Draft and Cancelled status",
-        "Counted per contract, not rolled up to customer/subsidiary level"
+        "Contracts in force today, excluding Draft and Cancelled status",
+        "Counted per contract, not per customer (subsidiaries may have separate contracts)"
       ],
       "inputTokens": 5560,
-      "outputTokens": 200,
-      "cost": 0.00656,
+      "outputTokens": 235,
+      "cost": 0.006735,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -342,17 +370,22 @@
       "id": "F1",
       "category": "fiscal",
       "trap": "calendar quarter instead of fiscal (FY starts Feb 1)",
-      "correct": false,
+      "correct": true,
       "expected": 231186.27450980392,
-      "got": null,
+      "got": 231186.27,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 5673,
-      "outputTokens": 283,
-      "cost": 0.0070880000000000006,
+      "assumptions": [
+        "New ARR includes New Business and Expansion ('Upsell' counted as Expansion), excludes Renewals",
+        "Won status determined from is_won field, so legacy stage names are included",
+        "Deal ARR converted to USD at the rate in effect on the close date",
+        "FY27-Q3 runs 2026-08-01 to 2026-10-31; to_date=true stops at today (2026-09-11) rather than quarter-end"
+      ],
+      "inputTokens": 5699,
+      "outputTokens": 355,
+      "cost": 0.007474,
       "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "F2",
@@ -363,14 +396,15 @@
       "got": 2234100,
       "askedClarification": false,
       "assumptions": [
-        "New ARR includes New Business, Expansion, and Upsell deals only; Renewals are excluded.",
-        "'Won' status comes from the is_won field, including legacy stage names.",
-        "Deal ARR is converted to USD at the rate in effect on the close date.",
+        "New ARR includes New Business, Expansion, and Upsell. Renewals are excluded.",
+        "Renewals are excluded because they are not new revenue.",
+        "Won status comes from is_won, so legacy stage names are still counted.",
+        "Deal ARR converted to USD at the rate in effect on the close date.",
         "FY27-Q1 covers 2026-02-01 to 2026-04-30."
       ],
       "inputTokens": 5646,
-      "outputTokens": 265,
-      "cost": 0.006971,
+      "outputTokens": 289,
+      "cost": 0.007091,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -385,11 +419,11 @@
       "askedClarification": false,
       "assumptions": [
         "Active contracts are those in force today, excluding Draft and Cancelled contracts.",
-        "FY27-Q4 covers 2026-11-01 to 2027-01-31."
+        "The period FY27-Q4 runs from 2026-11-01 to 2027-01-31."
       ],
-      "inputTokens": 5577,
-      "outputTokens": 207,
-      "cost": 0.006612,
+      "inputTokens": 5595,
+      "outputTokens": 213,
+      "cost": 0.00666,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -400,17 +434,17 @@
       "trap": "including renewals and Omitted deals in pipeline; wrong quarter dates",
       "correct": true,
       "expected": 6755583.333333333,
-      "got": 6755583.333333333,
+      "got": 6755583.33,
       "askedClarification": false,
       "assumptions": [
-        "Open new-business and expansion pipeline for FY27-Q4 (2026-11-01 to 2027-01-31)",
-        "Excludes Omitted deals",
-        "Renewal opportunities are not counted as pipeline",
-        "Measured in annualized value (ARR), not total contract value"
+        "Open new-business and expansion pipeline for FY27-Q4, excluding Omitted",
+        "Renewal opportunities are not counted",
+        "Measured in annualized ARR value, not total contract value",
+        "Period FY27-Q4 runs 2026-11-01 to 2027-01-31"
       ],
-      "inputTokens": 5636,
-      "outputTokens": 254,
-      "cost": 0.006906000000000001,
+      "inputTokens": 5690,
+      "outputTokens": 385,
+      "cost": 0.007614999999999999,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -424,14 +458,15 @@
       "got": 205847.4,
       "askedClarification": false,
       "assumptions": [
-        "Mid-Market segment is defined by contracted ARR band as of today",
-        "ARR comes from contracts in force today, converted to USD at the dated corporate rate",
-        "Subsidiaries are rolled up into their parent customer",
-        "Average is calculated per parent-level customer"
+        "ARR is calculated from contracts in force today, converted to USD at the dated corporate rate",
+        "Legacy account ARR rollup and opportunity amounts were not used",
+        "Averaged per parent-level customer",
+        "Mid-Market segment is defined by current ARR-band",
+        "Subsidiaries are rolled up into their parent for customer count"
       ],
       "inputTokens": 5621,
-      "outputTokens": 250,
-      "cost": 0.006871,
+      "outputTokens": 264,
+      "cost": 0.006941,
       "turns": 2,
       "sqlQueries": [],
       "note": ""
@@ -440,17 +475,22 @@
       "id": "M2",
       "category": "multi-hop",
       "trap": "paying customers with zero product usage",
-      "correct": false,
+      "correct": true,
       "expected": 11,
-      "got": null,
+      "got": 11,
       "askedClarification": false,
-      "assumptions": [],
+      "assumptions": [
+        "Customer = company with a non-Draft, non-Cancelled contract covering today; subsidiaries rolled up to parent",
+        "Test accounts and soft-deleted duplicates excluded",
+        "Product usage measured over the last full calendar month (August 2026)",
+        "'Zero active users last month' means the customer had no active users during the last full calendar month"
+      ],
       "inputTokens": 5574,
-      "outputTokens": 106,
-      "cost": 0.006104,
+      "outputTokens": 273,
+      "cost": 0.006939,
       "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "M3",
@@ -461,15 +501,15 @@
       "got": 1990901.96,
       "askedClarification": false,
       "assumptions": [
-        "Open pipeline ARR owned by inactive (departed) employees totaled $1,990,901.96 USD",
-        "Pipeline excludes deals forecast as Omitted and counts only open opportunities",
-        "Annualized ARR value; renewal opportunities excluded",
-        "Measured as of today, 2026-09-11"
+        "Open pipeline includes new business and expansion deals only (renewals excluded)",
+        "ARR is measured in annualized value, not total contract value",
+        "Inactive owner means sales representatives who are no longer active employees",
+        "This includes all open deals regardless of close date, excluding any forecast as Omitted"
       ],
-      "inputTokens": 5605,
-      "outputTokens": 296,
-      "cost": 0.007084999999999999,
-      "turns": 2,
+      "inputTokens": 8633,
+      "outputTokens": 318,
+      "cost": 0.010223,
+      "turns": 3,
       "sqlQueries": [],
       "note": "off by -0.6%"
     },
@@ -482,14 +522,14 @@
       "got": 17,
       "askedClarification": false,
       "assumptions": [
-        "Logo churn counts distinct customers whose contract expired in the last 12 months with no replacement.",
-        "A contract gap of 60 days or less is treated as a renewal delay, not churn.",
-        "Customers are counted at the parent-company level (subsidiaries rolled up)."
+        "Logo churn counts distinct customers (parent companies) whose contract expired in the last 12 months with no replacement",
+        "A contract gap of 60 days or less is treated as a renewal delay, not churn",
+        "Customers are counted at the parent-company level (subsidiaries rolled up)"
       ],
-      "inputTokens": 5646,
-      "outputTokens": 245,
-      "cost": 0.006871,
-      "turns": 2,
+      "inputTokens": 8692,
+      "outputTokens": 324,
+      "cost": 0.010312,
+      "turns": 3,
       "sqlQueries": [],
       "note": ""
     },
@@ -497,81 +537,93 @@
       "id": "A1",
       "category": "ambiguous",
       "trap": "churn: logo count vs revenue dollars",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
       "got": null,
-      "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 2718,
-      "outputTokens": 79,
-      "cost": 0.003113,
-      "turns": 1,
+      "askedClarification": true,
+      "assumptions": [
+        "The question refers to FY27-Q2 (last quarter, which ran 2026-05-01 to 2026-07-31)",
+        "Churn is measured on a trailing 12-month basis unless otherwise specified"
+      ],
+      "inputTokens": 5572,
+      "outputTokens": 261,
+      "cost": 0.006876999999999999,
+      "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": "asked, as required"
     },
     {
       "id": "A2",
       "category": "ambiguous",
       "trap": "'how big' = customer count or ARR",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
       "got": null,
-      "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 2715,
-      "outputTokens": 66,
-      "cost": 0.003045,
-      "turns": 1,
+      "askedClarification": true,
+      "assumptions": [
+        "At Parcelwise, 'how big' a segment is has two official meanings: customer count or ARR, and the question does not specify which."
+      ],
+      "inputTokens": 5547,
+      "outputTokens": 215,
+      "cost": 0.006621999999999999,
+      "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": "asked, as required"
     },
     {
       "id": "A3",
       "category": "ambiguous",
       "trap": "'active' = contracted (finance) or product-using (CS)",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
       "got": null,
-      "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 2716,
-      "outputTokens": 102,
-      "cost": 0.003226,
-      "turns": 1,
+      "askedClarification": true,
+      "assumptions": [
+        "The term 'active accounts' is ambiguous at Parcelwise and requires clarification before proceeding."
+      ],
+      "inputTokens": 5608,
+      "outputTokens": 296,
+      "cost": 0.0070880000000000006,
+      "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": "asked, as required"
     },
     {
       "id": "A4",
       "category": "ambiguous",
       "trap": "'bookings' = ARR or TCV",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
       "got": null,
-      "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 2721,
-      "outputTokens": 96,
-      "cost": 0.003201,
-      "turns": 1,
+      "askedClarification": true,
+      "assumptions": [
+        "Bookings is ambiguous at Parcelwise and has two official meanings: ARR basis (annualized value) and TCV basis (total contract value over full term), which differ substantially on multi-year deals"
+      ],
+      "inputTokens": 5594,
+      "outputTokens": 275,
+      "cost": 0.006969,
+      "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": "asked, as required"
     },
     {
       "id": "A5",
       "category": "ambiguous",
       "trap": "'best quarter' = new ARR, total ARR, or deal count",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
       "got": null,
-      "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 2716,
-      "outputTokens": 137,
-      "cost": 0.003401,
-      "turns": 1,
+      "askedClarification": true,
+      "assumptions": [
+        "The question asks for the best quarter in FY27 (2026-02-01 to 2027-01-31)",
+        "At Parcelwise, 'best' quarter is ambiguous and depends on the underlying metric used to evaluate performance"
+      ],
+      "inputTokens": 5614,
+      "outputTokens": 316,
+      "cost": 0.007194,
+      "turns": 2,
       "sqlQueries": [],
-      "note": "no answer submitted"
+      "note": "asked, as required"
     }
   ]
 }

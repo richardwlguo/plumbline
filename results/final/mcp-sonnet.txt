@@ -1,4 +1,4 @@
-◇ injected env (2) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (2) from .env.local // tip: ⌘ enable debugging { debug: true }
 ◇ injected env (0) from .env.local // tip: ⌘ enable debugging { debug: true }
 
 condition=mcp  model=claude-sonnet-5  questions=31
@@ -15,7 +15,7 @@ D1     ✓                117               117
 D2     ✓         21,449,906        21,449,906  
 D3     ✓                117               117  
 D4     ✓          1,071,295         1,071,295  
-D5     ✗                  -           583,742  no answer submitted
+D5     ✓            583,742           583,742  
 D6     ✓         12,756,361        12,756,361  
 D7     ✓                 15                15  
 D8     ✓         30,999,400        30,999,400  
@@ -38,23 +38,22 @@ A4     ✓              ASKED           CLARIFY  asked, as required
 A5     ✓              ASKED           CLARIFY  asked, as required
 
 ======================================================================================
-ACCURACY            29/31  (93.5%)
+ACCURACY            30/31  (96.8%)
   controls          6/6
-  definition traps  10/11
+  definition traps  11/11
   fiscal traps      4/4
   multi-hop         3/4
   ambiguous (ask)   5/5
   hygiene           1/1
-TOKENS / QUESTION   6,677
-  input             6,357
-  output            320
+TOKENS / QUESTION   7,466
+  input             7,100
+  output            366
 SQL QUERIES / Q     0.0
-COST / QUESTION     $0.0159
-TOTAL RUN COST      $0.49
+COST / QUESTION     $0.0179
+TOTAL RUN COST      $0.55
 ======================================================================================
 
 TRAPS THAT CAUGHT IT:
-  D5  treating 'Upsell' as separate from 'Expansion' and dropping it
   M3  departed reps still own open pipeline
 
 Full transcript saved to results/mcp-claude-sonnet-5.json

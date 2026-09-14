@@ -1,13 +1,13 @@
 {
   "condition": "baseline",
   "model": "claude-sonnet-5",
-  "ranAt": "2026-09-12T03:32:53.812Z",
-  "accuracy": 0.2903225806451613,
-  "correct": 9,
+  "ranAt": "2026-09-14T16:19:54.726Z",
+  "accuracy": 0.3870967741935484,
+  "correct": 12,
   "total": 31,
-  "avgTokens": 21917.870967741936,
-  "avgCost": 0.06017019354838711,
-  "totalCost": 1.8652760000000004,
+  "avgTokens": 19534.709677419356,
+  "avgCost": 0.05423277419354838,
+  "totalCost": 1.6812159999999998,
   "results": [
     {
       "id": "C1",
@@ -19,7 +19,7 @@
       "askedClarification": false,
       "assumptions": [
         "'Open' means is_closed = false",
-        "Deleted opportunities (is_deleted = true) are excluded"
+        "Excludes soft-deleted records (is_deleted = false)"
       ],
       "inputTokens": 3773,
       "outputTokens": 218,
@@ -39,15 +39,15 @@
       "got": 9,
       "askedClarification": false,
       "assumptions": [
-        "Counted rows in the 'users' table where role equals 'AE' (exact match, case-sensitive)",
-        "Did not filter by is_active status, so includes inactive users if any"
+        "'Sales reps with role AE' refers to rows in the users table where role = 'AE'",
+        "Both active and inactive users with this role are counted"
       ],
-      "inputTokens": 3781,
-      "outputTokens": 263,
-      "cost": 0.010192,
+      "inputTokens": 3783,
+      "outputTokens": 242,
+      "cost": 0.009986,
       "turns": 2,
       "sqlQueries": [
-        "SELECT COUNT(*) FROM users WHERE role = 'AE'"
+        "SELECT count(*) FROM users WHERE role = 'AE'"
       ],
       "note": ""
     },
@@ -60,15 +60,16 @@
       "got": 64,
       "askedClarification": false,
       "assumptions": [
-        "billing_country field uses ISO country codes; 'GB' represents United Kingdom",
-        "Counted all accounts regardless of is_deleted or is_active flags"
+        "'United Kingdom' corresponds to billing_country code 'GB' in the accounts table, which is the only variant present in the data.",
+        "No filtering applied for is_deleted or is_active__c fields, as the question asks about all accounts based in GB."
       ],
-      "inputTokens": 3880,
-      "outputTokens": 302,
-      "cost": 0.010780000000000001,
-      "turns": 2,
+      "inputTokens": 5934,
+      "outputTokens": 388,
+      "cost": 0.015747999999999998,
+      "turns": 3,
       "sqlQueries": [
-        "SELECT billing_country, count(*) FROM accounts GROUP BY billing_country ORDER BY 2 DESC LIMIT 50"
+        "SELECT billing_country, count(*) FROM accounts WHERE billing_country ILIKE '%king%' OR billing_country = 'GB' GROUP BY billing_country",
+        "SELECT count(*) FROM accounts WHERE billing_country = 'GB'"
       ],
       "note": "off by +4.9%"
     },
@@ -81,15 +82,15 @@
       "got": 1160000,
       "askedClarification": false,
       "assumptions": [
-        "The 'largest single contract ARR' refers to the maximum value in contracts.arr, taken in its native currency (currency_iso_code) without conversion.",
-        "This maximum is 1,160,000 CAD."
+        "The largest single contract ARR is determined by the maximum value in contracts.arr, reported in its own currency_iso_code without conversion.",
+        "The largest contract ARR record is 1,160,000 CAD (contract id 8000026)."
       ],
-      "inputTokens": 3897,
-      "outputTokens": 282,
-      "cost": 0.010614,
+      "inputTokens": 3934,
+      "outputTokens": 271,
+      "cost": 0.010578,
       "turns": 2,
       "sqlQueries": [
-        "SELECT arr, currency_iso_code FROM contracts ORDER BY arr DESC NULLS LAST LIMIT 5"
+        "SELECT id, arr, currency_iso_code FROM contracts ORDER BY arr DESC NULLS LAST LIMIT 5"
       ],
       "note": ""
     },
@@ -102,12 +103,12 @@
       "got": 69,
       "askedClarification": false,
       "assumptions": [
-        "Counted all accounts (regardless of active status or deletion flag) with csm_health_score__c < 50.",
-        "Rows with NULL csm_health_score__c were excluded since NULL < 50 is not true."
+        "Counted all accounts in the accounts table where csm_health_score__c < 50, regardless of is_deleted or is_active__c flags",
+        "NULL csm_health_score__c values are excluded (not counted as below 50)"
       ],
       "inputTokens": 3768,
-      "outputTokens": 246,
-      "cost": 0.009996000000000001,
+      "outputTokens": 250,
+      "cost": 0.010036,
       "turns": 2,
       "sqlQueries": [
         "SELECT COUNT(*) FROM accounts WHERE csm_health_score__c < 50"
@@ -123,12 +124,12 @@
       "got": 97,
       "askedClarification": false,
       "assumptions": [
-        "'auto-renew turned on' means auto_renew = true in the contracts table",
-        "Includes all contracts regardless of status"
+        "'Auto-renew turned on' means auto_renew = true in the contracts table",
+        "Counting all contracts regardless of status (active, expired, etc.)"
       ],
       "inputTokens": 3762,
-      "outputTokens": 214,
-      "cost": 0.009664,
+      "outputTokens": 225,
+      "cost": 0.009774,
       "turns": 2,
       "sqlQueries": [
         "SELECT COUNT(*) FROM contracts WHERE auto_renew = true"
@@ -141,26 +142,23 @@
       "trap": "is_active__c / customer_status__c / usage instead of contracts; subsidiaries not rolled up",
       "correct": false,
       "expected": 117,
-      "got": 124,
+      "got": 128,
       "askedClarification": false,
       "assumptions": [
-        "\"Customers\" is defined as accounts whose customer_status__c field equals 'Active' (the field explicitly labeled 'Customer Status'), regardless of the separate is_active__c boolean flag which appears inconsistent with customer_status__c for some records (e.g. 13 accounts marked Churned but is_active__c=true).",
-        "Deleted accounts (is_deleted) were not explicitly filtered out since the field wasn't checked, but this is assumed to already exclude removed records in this dataset.",
-        "This counts distinct accounts, not contracts or opportunities."
+        "'Customers' is defined as non-deleted accounts whose customer_status__c is 'Active' or 'At Risk' (i.e., currently under contract/paying), excluding 'Prospect' (never converted) and 'Churned' (no longer a customer).",
+        "The is_active__c boolean flag on accounts was found to be inconsistently populated relative to customer_status__c, so customer_status__c was used as the source of truth for determining current customer status.",
+        "Deleted account records (is_deleted = true) were excluded from the count."
       ],
-      "inputTokens": 17990,
-      "outputTokens": 1603,
-      "cost": 0.05201,
-      "turns": 7,
+      "inputTokens": 9581,
+      "outputTokens": 1118,
+      "cost": 0.030342,
+      "turns": 4,
       "sqlQueries": [
         "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 3 DESC",
-        "SELECT type, count(*) FROM accounts GROUP BY 1 ORDER BY 2 DESC",
-        "SELECT count(*) FROM accounts WHERE customer_status__c='Active'",
-        "SELECT count(*) FROM accounts WHERE customer_status__c='Active' AND total_arr__c>0",
-        "SELECT (total_arr__c IS NULL) as null_arr, (total_arr__c=0) as zero_arr, count(*) FROM accounts WHERE customer_status__c='Active' GROUP BY 1,2",
-        "SELECT customer_status__c, count(*) FROM accounts WHERE is_active__c=true GROUP BY 1"
+        "SELECT is_deleted, count(*) FROM accounts GROUP BY 1",
+        "SELECT customer_status__c, count(*) FROM accounts WHERE is_deleted = false GROUP BY 1 ORDER BY 2 DESC"
       ],
-      "note": "off by +6.0%"
+      "note": "off by +9.4%"
     },
     {
       "id": "D2",
@@ -171,28 +169,33 @@
       "got": 21449905.88,
       "askedClarification": false,
       "assumptions": [
-        "\"Total ARR\" is defined as the sum of Contract ARR (contracts.arr) for contracts that are currently active, i.e. status = 'Activated' and today's date (2026-09-11) falls between start_date and end_date.",
-        "The accounts.total_arr__c field was found to be incomplete/stale (null for many accounts with active contracts), so contract-level data was used instead as the source of truth for current ARR.",
-        "Non-USD contract ARR (CAD, GBP) was converted to USD using the dated_conversion_rates table, selecting the rate row valid for today's date (start_date <= today < next_start_date) for each currency.",
-        "Conversion convention: dated_conversion_rates.conversion_rate represents units of foreign currency per 1 USD, so USD amount = foreign_amount / conversion_rate. This was validated against USD's own rate of 1 and against realistic CAD/GBP exchange rate directions.",
-        "Cancelled, Expired, and Draft contracts were excluded as they do not represent current active ARR."
+        "\"Total ARR\" is defined as the sum of ARR from all currently in-force contracts (status = 'Activated', with start_date <= 2026-09-11 <= end_date).",
+        "The accounts.total_arr__c field was found to be unreliable/incomplete (null for many active accounts, and stored in the contract's local currency rather than USD), so ARR was computed directly from the contracts table instead.",
+        "Currency conversion to USD was done using the most recent applicable rate in dated_conversion_rates as of 2026-09-11 (USD=1.0, CAD=1.36, GBP=0.75), applying USD_amount = local_amount / conversion_rate (consistent with Salesforce's corporate-currency conversion convention).",
+        "Contracts in 'Draft', 'Cancelled', or 'Expired' status were excluded as they do not represent current recognized ARR.",
+        "Breakdown: USD contracts $9,322,200 (no conversion) + CAD contracts $4,147,600 / 1.36 = $3,049,706 + GBP contracts $6,808,500 / 0.75 = $9,078,000, totaling ~$21,449,906."
       ],
-      "inputTokens": 35797,
-      "outputTokens": 3335,
-      "cost": 0.10494400000000001,
-      "turns": 8,
+      "inputTokens": 53100,
+      "outputTokens": 5853,
+      "cost": 0.16473,
+      "turns": 10,
       "sqlQueries": [
         "SELECT count(*), sum(total_arr__c) FROM accounts WHERE is_active__c = true",
-        "SELECT distinct currency_iso_code FROM contracts",
-        "SELECT status, count(*), sum(arr) FROM contracts GROUP BY status",
-        "SELECT a.id, a.total_arr__c, sum(c.arr) as contract_sum\nFROM accounts a LEFT JOIN contracts c ON c.account_id = a.id AND c.status='Active'\nGROUP BY a.id, a.total_arr__c\nLIMIT 20",
-        "SELECT a.id, a.total_arr__c, sum(c.arr) as contract_sum\nFROM accounts a LEFT JOIN contracts c ON c.account_id = a.id AND c.status='Activated' AND c.start_date <= current_date AND c.end_date >= current_date\nGROUP BY a.id, a.total_arr__c\nLIMIT 20",
-        "SELECT min(start_date), max(end_date) FROM contracts WHERE status='Activated'",
-        "SELECT currency_iso_code, count(*), sum(arr) FROM contracts WHERE status='Activated' AND start_date <= current_date AND end_date >= current_date GROUP BY currency_iso_code",
-        "SELECT * FROM dated_conversion_rates WHERE iso_code IN ('CAD','GBP') AND (next_start_date IS NULL OR next_start_date > current_date) AND start_date <= current_date ORDER BY iso_code",
-        "SELECT * FROM dated_conversion_rates WHERE iso_code='USD'",
-        "\nSELECT c.currency_iso_code, sum(c.arr) as total_arr, \n       sum(c.arr) / r.conversion_rate as usd_amount\nFROM contracts c\nJOIN dated_conversion_rates r ON r.iso_code = c.currency_iso_code\n  AND r.start_date <= current_date AND (r.next_start_date IS NULL OR r.next_start_date > current_date)\nWHERE c.status='Activated' AND c.start_date <= current_date AND c.end_date >= current_date\nGROUP BY c.currency_iso_code, r.conversion_rate\n",
-        "\nSELECT sum(usd_amount) as total_usd FROM (\nSELECT c.currency_iso_code, sum(c.arr) / r.conversion_rate as usd_amount\nFROM contracts c\nJOIN dated_conversion_rates r ON r.iso_code = c.currency_iso_code\n  AND r.start_date <= current_date AND (r.next_start_date IS NULL OR r.next_start_date > current_date)\nWHERE c.status='Activated' AND c.start_date <= current_date AND c.end_date >= current_date\nGROUP BY c.currency_iso_code, r.conversion_rate\n) t\n"
+        "SELECT currency_iso_code, count(*), sum(arr) FROM contracts WHERE status='Active' GROUP BY 1",
+        "SELECT status, count(*) FROM contracts GROUP BY 1",
+        "SELECT count(*), sum(total_arr__c) FROM accounts",
+        "SELECT is_active__c, count(*), sum(total_arr__c), count(total_arr__c) FROM accounts GROUP BY 1",
+        "SELECT currency_iso_code, count(*) FROM accounts GROUP BY 1",
+        "SELECT currency_iso_code, count(*), sum(arr) FROM contracts WHERE status='Activated' GROUP BY 1",
+        "SELECT is_active__c, count(*) FROM accounts GROUP BY 1 ORDER BY 1",
+        "SELECT customer_status__c, count(*), sum(total_arr__c) FROM accounts GROUP BY 1",
+        "SELECT is_active__c, count(*), sum(total_arr__c), count(total_arr__c) FROM accounts GROUP BY 1",
+        "SELECT is_active__c, COUNT(*) as cnt FROM accounts GROUP BY is_active__c",
+        "SELECT a.is_active__c, COUNT(*) as cnt, SUM(a.total_arr__c) as s FROM accounts a GROUP BY a.is_active__c",
+        "SELECT a.id, a.total_arr__c, a.customer_status__c, c.currency_iso_code, c.status, c.arr, c.start_date, c.end_date\nFROM accounts a JOIN contracts c ON c.account_id=a.id\nWHERE a.customer_status__c='Active'\nORDER BY a.id\nLIMIT 30",
+        "SELECT currency_iso_code, count(*), sum(arr) \nFROM contracts \nWHERE status='Activated' AND start_date <= '2026-09-11' AND end_date >= '2026-09-11'\nGROUP BY 1",
+        "SELECT * FROM dated_conversion_rates WHERE iso_code IN ('USD','GBP','CAD') AND start_date <= '2026-09-11' AND (next_start_date > '2026-09-11' OR next_start_date IS NULL) ORDER BY iso_code",
+        "SELECT \n  9322200 as usd,\n  4147600/1.36 as cad_usd,\n  6808500/0.75 as gbp_usd,\n  9322200 + 4147600/1.36 + 6808500/0.75 as total_usd"
       ],
       "note": ""
     },
@@ -205,25 +208,24 @@
       "got": 113,
       "askedClarification": false,
       "assumptions": [
-        "\"Customers\" = accounts with customer_status__c = 'Active' (124 accounts total before rollup)",
-        "\"Subsidiaries rolled up into parent\" means: if a subsidiary account (has parent_account_id set) is itself an active customer AND its parent account is also an active customer, the subsidiary is merged into/counted as part of the parent rather than as a separate customer",
-        "Checked account hierarchy is only one level deep (no grandparent chains) in this dataset",
-        "Found 11 active-customer accounts whose parent_account_id points to another active-customer account (e.g., Summit Labs Europe -> Summit Labs, Blue Systems Europe -> Blue Systems Inc, etc.)",
-        "One subsidiary (Granite Freight Europe) has customer_status__c = 'Churned' with an Active parent - since it's not itself an active customer, it doesn't add to the count either way",
-        "Rolled-up customer count = 124 (active accounts) - 11 (active subsidiaries absorbed into their active parent) = 113"
+        "\"Customers\" defined as accounts with customer_status__c = 'Active' (as opposed to Prospect, At Risk, or Churned).",
+        "Rolling up subsidiaries means grouping each account by its ultimate parent (using parent_account_id where present, else the account itself) and counting distinct resulting entities, so a parent and its active subsidiary count as one customer.",
+        "Checked and confirmed that all 11 active subsidiary accounts have parent accounts that are themselves also Active customers, so the rollup simply collapses these 11 subsidiaries into their already-counted parents.",
+        "Starting from 124 accounts with customer_status__c = 'Active', rolling up subsidiaries into parents yields 113 distinct customer entities (124 - 11 duplicate subsidiary rows)."
       ],
-      "inputTokens": 16264,
-      "outputTokens": 2090,
-      "cost": 0.053428,
+      "inputTokens": 15964,
+      "outputTokens": 1905,
+      "cost": 0.050977999999999996,
       "turns": 5,
       "sqlQueries": [
-        "select customer_status__c, count(*) from accounts group by 1 order by 2 desc",
-        "select type, count(*) from accounts group by 1 order by 2 desc",
-        "select customer_status__c, type, count(*) from accounts group by 1,2 order by 3 desc",
-        "select count(*) from accounts where parent_account_id is not null",
-        "select a.id, a.name, a.customer_status__c, a.parent_account_id, p.name as parent_name, p.customer_status__c as parent_status\nfrom accounts a left join accounts p on a.parent_account_id = p.id\nwhere a.customer_status__c='Active' and a.parent_account_id is not null",
-        "select a.id, a.name, a.customer_status__c, a.parent_account_id, p.name as parent_name, p.customer_status__c as parent_status\nfrom accounts a left join accounts p on a.parent_account_id = p.id\nwhere a.parent_account_id is not null",
-        "select id from accounts where id in (select parent_account_id from accounts where parent_account_id is not null) and parent_account_id is not null"
+        "SELECT customer_status__c, count(*) FROM accounts GROUP BY 1 ORDER BY 2 DESC",
+        "SELECT is_active__c, count(*) FROM accounts GROUP BY 1",
+        "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 1,2",
+        "SELECT count(*) FROM accounts WHERE parent_account_id IS NOT NULL",
+        "SELECT count(*) FROM accounts WHERE parent_account_id IS NOT NULL AND customer_status__c='Active'",
+        "SELECT a.id, a.name, a.parent_account_id, p.name as parent_name, p.customer_status__c as parent_status\nFROM accounts a LEFT JOIN accounts p ON a.parent_account_id = p.id\nWHERE a.customer_status__c='Active' AND a.parent_account_id IS NOT NULL",
+        "SELECT count(*) FROM accounts WHERE parent_account_id IS NULL",
+        "SELECT count(DISTINCT COALESCE(parent_account_id, id)) FROM accounts WHERE customer_status__c='Active'"
       ],
       "note": "off by -3.4%"
     },
@@ -231,21 +233,24 @@
       "id": "D4",
       "category": "definition",
       "trap": "including Renewal deals in new ARR",
-      "correct": false,
+      "correct": true,
       "expected": 1071295.0980392157,
-      "got": null,
+      "got": 1071295.1,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 8310,
-      "outputTokens": 3064,
-      "cost": 0.047259999999999996,
-      "turns": 3,
+      "assumptions": "\n<parameter name=\"assumptions\">[\"Fiscal year follows Salesforce's own convention (Feb 1 – Jan 31), consistent with this being a Salesforce-synced database: FY27 = Feb 1, 2026 – Jan 31, 2027, so FY27 Q2 = May 1, 2026 – Jul 31, 2026.\", \"'New ARR' = ARR from closed-won opportunities excluding Renewal type opportunities (New Business, Upsell, and Expansion all count as 'new' ARR, per the stated definition that only renewals are excluded).\", \"ARR is measured via opportunities.arr__c on closed-won deals with close_date in the quarter.\", \"Non-USD amounts (GBP, CAD) converted to USD using the dated_conversion_rates table's rate in effect on the close date (rate represents USD-to-local conversion, so USD = local amount / rate).\", \"Only opportunities with is_deleted = false are considered valid (none of the matching rows were flagged deleted).\"]</parameter>\n</invoke>\n",
+      "inputTokens": 24664,
+      "outputTokens": 2787,
+      "cost": 0.07719799999999999,
+      "turns": 7,
       "sqlQueries": [
-        "SELECT MIN(close_date), MAX(close_date) FROM opportunities WHERE is_won=true;",
-        "SELECT DISTINCT type FROM opportunities;",
-        "SELECT date_trunc('month', close_date) AS month, count(*) FROM opportunities WHERE is_won=true GROUP BY 1 ORDER BY 1;"
+        "SELECT min(close_date), max(close_date) FROM opportunities WHERE is_won = true;",
+        "SELECT type, count(*), sum(arr__c) FROM opportunities WHERE is_won=true GROUP BY type;",
+        "SELECT currency_iso_code, count(*) FROM opportunities GROUP BY currency_iso_code;",
+        "SELECT o.id, o.close_date, o.arr__c, o.currency_iso_code\nFROM opportunities o\nWHERE o.is_won = true AND o.type != 'Renewal'\n  AND o.close_date >= '2026-05-01' AND o.close_date <= '2026-07-31';",
+        "SELECT iso_code, start_date, next_start_date, conversion_rate FROM dated_conversion_rates WHERE iso_code IN ('GBP','CAD') ORDER BY iso_code, start_date;",
+        "\nSELECT\n  SUM(CASE WHEN o.currency_iso_code='USD' THEN o.arr__c\n           WHEN o.currency_iso_code='GBP' THEN o.arr__c/0.75\n           WHEN o.currency_iso_code='CAD' THEN o.arr__c/1.36\n      END) AS total_usd\nFROM opportunities o\nWHERE o.is_won = true AND o.type != 'Renewal'\n  AND o.close_date >= '2026-05-01' AND o.close_date <= '2026-07-31';\n"
       ],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "D5",
@@ -256,24 +261,26 @@
       "got": 583742.16,
       "askedClarification": false,
       "assumptions": [
-        "Fiscal year follows Salesforce convention: FY27 = Feb 1, 2026 through Jan 31, 2027 (consistent with the currency conversion rate table which resets on Feb 1 each year).",
-        "'So far' means closed opportunities from Feb 1, 2026 through today, 2026-09-11.",
-        "Expansion ARR = sum of arr__c for closed-won opportunities with type = 'Expansion' or type = 'Upsell' (both counted as expansion per the question's wording).",
-        "Only is_won = true opportunities counted as 'closed' (deals actually closed/won, not just closed-lost).",
-        "Currency conversion to USD uses dated_conversion_rates, applying the rate whose date range (start_date to next_start_date) contains the opportunity's close_date, with amount_usd = amount_local / conversion_rate (since USD rate = 1 and other currencies are quoted as local-per-USD).",
-        "Deleted opportunities (is_deleted) were not explicitly filtered out, but none appeared in scope; is_deleted was not excluded in the query (assumed all relevant records are not deleted)."
+        "Fiscal Year (FY27) is defined as Feb 1, 2026 through Jan 31, 2027, based on the currency conversion rate periods in dated_conversion_rates which reset on Feb 1 each year",
+        "'So far' in FY27 means closed opportunities with close_date between 2026-02-01 and today, 2026-09-11",
+        "'Expansion ARR' includes opportunities with type = 'Upsell' or type = 'Expansion' (the two expansion-related deal types in the data)",
+        "Only closed-won opportunities (is_won = true) are counted",
+        "ARR is measured via the opportunities.arr__c field",
+        "Non-USD amounts (CAD, GBP) are converted to USD by dividing by the FY27 conversion rate in dated_conversion_rates (rate represents local currency units per 1 USD): CAD rate 1.36, GBP rate 0.75",
+        "Deleted/duplicate records are not separately filtered since is_deleted was not explicitly checked, but no deleted records appeared to affect this calculation"
       ],
-      "inputTokens": 17563,
-      "outputTokens": 2403,
-      "cost": 0.059156,
-      "turns": 5,
+      "inputTokens": 19770,
+      "outputTokens": 2656,
+      "cost": 0.06609999999999999,
+      "turns": 6,
       "sqlQueries": [
         "SELECT DISTINCT type FROM opportunities",
         "SELECT MIN(close_date), MAX(close_date) FROM opportunities",
-        "SELECT DISTINCT currency_iso_code FROM opportunities",
-        "SELECT iso_code, start_date, next_start_date, conversion_rate FROM dated_conversion_rates ORDER BY iso_code, start_date",
-        "\nSELECT o.currency_iso_code, SUM(o.arr__c) as raw_sum,\nSUM(o.arr__c / d.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates d\n  ON d.iso_code = o.currency_iso_code\n  AND o.close_date >= d.start_date\n  AND o.close_date < d.next_start_date\nWHERE o.type IN ('Upsell','Expansion')\n  AND o.is_won = true\n  AND o.close_date >= '2026-02-01'\n  AND o.close_date <= '2026-09-11'\nGROUP BY o.currency_iso_code\n",
-        "\nSELECT SUM(o.arr__c / d.conversion_rate) as total_usd\nFROM opportunities o\nJOIN dated_conversion_rates d\n  ON d.iso_code = o.currency_iso_code\n  AND o.close_date >= d.start_date\n  AND o.close_date < d.next_start_date\nWHERE o.type IN ('Upsell','Expansion')\n  AND o.is_won = true\n  AND o.close_date >= '2026-02-01'\n  AND o.close_date <= '2026-09-11'\n"
+        "SELECT EXTRACT(MONTH FROM close_date) AS month, COUNT(*) FROM opportunities GROUP BY 1 ORDER BY 1",
+        "SELECT currency_iso_code, COUNT(*), SUM(arr__c) FROM opportunities \nWHERE type IN ('Upsell','Expansion') AND is_won = true AND close_date >= '2026-01-01' AND close_date <= '2026-09-11'\nGROUP BY 1",
+        "SELECT * FROM dated_conversion_rates LIMIT 20",
+        "SELECT currency_iso_code, COUNT(*), SUM(arr__c) FROM opportunities \nWHERE type IN ('Upsell','Expansion') AND is_won = true AND close_date >= '2026-02-01' AND close_date <= '2026-09-11'\nGROUP BY 1",
+        "SELECT \n  194300 + 31700/1.36 + 274600/0.75 AS total_usd"
       ],
       "note": ""
     },
@@ -285,19 +292,20 @@
       "expected": 12756360.758082498,
       "got": 12246545.37,
       "askedClarification": false,
-      "assumptions": "\n<parameter name=\"assumptions\">[\"FY26 follows the Salesforce fiscal year convention (confirmed by the dated_conversion_rates buckets), running from Feb 1, 2025 to Jan 31, 2026.\", \"'New ARR' refers to opportunities with type = 'New Business' that are Closed Won (is_won = true), measured by the arr__c field.\", \"Deals are attributed to FY26 based on their close_date.\", \"Currency conversion to USD uses the dated_conversion_rates table, applying the rate in effect on each opportunity's close_date, computed as foreign_amount / conversion_rate (since conversion_rate represents USD-to-currency rate, with USD rate = 1).\"]",
-      "inputTokens": 19681,
-      "outputTokens": 2119,
-      "cost": 0.060551999999999995,
-      "turns": 6,
+      "assumptions": "\n<parameter name=\"assumptions\">[\"Fiscal Year 26 (FY26) is defined as Feb 1, 2025 through Jan 31, 2026, consistent with the fiscal-year boundaries implied by the dated_conversion_rates table (rate periods start Feb 1 each year).\", \"\\\"New ARR\\\" refers to ARR from opportunities with type = 'New Business' (i.e., new-logo bookings, excluding Upsell, Expansion, and Renewal), that were Closed Won (is_won = true).\", \"ARR is measured using the opportunities.arr__c field on the opportunity's close_date.\", \"Non-USD amounts (CAD, GBP) were converted to USD using the dated_conversion_rates table, matching each opportunity's close_date to the applicable conversion rate period for its currency.\", \"Only opportunities with is_won = true and is_closed = true (Closed Won / Closed - Won (Legacy) stages) were included; open pipeline and closed-lost deals were excluded.\", \"Deleted records (is_deleted) were not explicitly filtered since none appeared with is_won = true and is_deleted = true in this check, but this was not separately verified.\"]",
+      "inputTokens": 21735,
+      "outputTokens": 2765,
+      "cost": 0.07112,
+      "turns": 5,
       "sqlQueries": [
-        "SELECT MIN(close_date), MAX(close_date) FROM opportunities",
         "SELECT DISTINCT type FROM opportunities",
+        "SELECT MIN(close_date), MAX(close_date) FROM opportunities",
         "SELECT DISTINCT currency_iso_code FROM opportunities",
-        "SELECT iso_code, COUNT(*) FROM dated_conversion_rates GROUP BY iso_code",
-        "SELECT * FROM dated_conversion_rates ORDER BY iso_code, start_date",
-        "\nSELECT o.currency_iso_code, COUNT(*), SUM(o.arr__c) as raw_sum,\nSUM(o.arr__c / r.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates r\n  ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date\n  AND o.close_date < r.next_start_date\nWHERE o.type = 'New Business'\n  AND o.is_won = true\n  AND o.close_date >= '2025-02-01'\n  AND o.close_date < '2026-02-01'\nGROUP BY o.currency_iso_code\n",
-        "\nSELECT SUM(o.arr__c / r.conversion_rate) as total_usd\nFROM opportunities o\nJOIN dated_conversion_rates r\n  ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date\n  AND o.close_date < r.next_start_date\nWHERE o.type = 'New Business'\n  AND o.is_won = true\n  AND o.close_date >= '2025-02-01'\n  AND o.close_date < '2026-02-01'\n"
+        "SELECT is_won, is_closed, stage_name, count(*) FROM opportunities GROUP BY 1,2,3 ORDER BY 1,2,3",
+        "SELECT * FROM dated_conversion_rates ORDER BY iso_code, start_date LIMIT 30",
+        "SELECT date_trunc('month', close_date) m, count(*) FROM opportunities WHERE is_won GROUP BY 1 ORDER BY 1",
+        "\nSELECT o.currency_iso_code, count(*), sum(o.arr__c) as raw_sum,\nsum(o.arr__c / r.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates r\n  ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date\n  AND o.close_date < r.next_start_date\nWHERE o.type = 'New Business'\n  AND o.is_won = true\n  AND o.close_date >= '2025-02-01'\n  AND o.close_date < '2026-02-01'\nGROUP BY o.currency_iso_code\n",
+        "\nSELECT sum(o.arr__c / r.conversion_rate) as usd_total\nFROM opportunities o\nJOIN dated_conversion_rates r\n  ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date\n  AND o.close_date < r.next_start_date\nWHERE o.type = 'New Business'\n  AND o.is_won = true\n  AND o.close_date >= '2025-02-01'\n  AND o.close_date < '2026-02-01'\n"
       ],
       "note": "off by -4.0%"
     },
@@ -310,22 +318,22 @@
       "got": 19,
       "askedClarification": false,
       "assumptions": [
-        "\"Current customers\" is defined as accounts with customer_status__c = 'Active' (i.e., presently active customer accounts, not prospects or churned).",
-        "\"Enterprise segment\" refers to the sales_segment__c field value 'Enterprise' (as opposed to the coarser segment__c field which uses 'ENT'/'MM'/'SMB' codes).",
-        "Including 'At Risk' status accounts (still current customers, just flagged) does not change the count — there are 0 Enterprise accounts in At Risk status, so the answer is 19 either way.",
-        "Deleted/duplicate accounts are not separately filtered since no is_deleted filter was applied beyond the standard fields."
+        "\"Current customers\" is defined as accounts with customer_status__c = 'Active' (i.e., currently active, non-churned customer accounts).",
+        "\"Enterprise segment\" refers to the sales_segment__c field value 'Enterprise' (as opposed to the separate segment__c field, which uses the abbreviation 'ENT' for a similarly-named but distinct segmentation).",
+        "No 'At Risk' accounts fall into the Enterprise segment, so including/excluding At Risk status does not change the result (19 either way)."
       ],
-      "inputTokens": 13854,
-      "outputTokens": 1739,
-      "cost": 0.045098,
-      "turns": 5,
+      "inputTokens": 10795,
+      "outputTokens": 1308,
+      "cost": 0.03467,
+      "turns": 4,
       "sqlQueries": [
         "SELECT DISTINCT customer_status__c FROM accounts;",
         "SELECT DISTINCT segment__c FROM accounts;",
         "SELECT DISTINCT sales_segment__c FROM accounts;",
-        "SELECT \n  (SELECT count(*) FROM accounts WHERE sales_segment__c='Enterprise' AND customer_status__c='Active') as sales_seg_active_status,\n  (SELECT count(*) FROM accounts WHERE sales_segment__c='Enterprise' AND is_active__c=true) as sales_seg_isactive,\n  (SELECT count(*) FROM accounts WHERE segment__c='ENT' AND customer_status__c='Active') as seg_active_status,\n  (SELECT count(*) FROM accounts WHERE segment__c='ENT' AND is_active__c=true) as seg_isactive;",
-        "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 1,2;",
-        "SELECT count(*) FROM accounts WHERE sales_segment__c='Enterprise' AND customer_status__c IN ('Active','At Risk');"
+        "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2;",
+        "SELECT count(*) FROM accounts WHERE customer_status__c='Active' AND sales_segment__c='Enterprise';",
+        "SELECT count(*) FROM accounts WHERE customer_status__c='Active' AND segment__c='ENT';",
+        "SELECT customer_status__c, sales_segment__c, count(*) FROM accounts WHERE customer_status__c IN ('Active','At Risk') GROUP BY 1,2 ORDER BY 1,2;"
       ],
       "note": "off by +26.7%"
     },
@@ -335,28 +343,24 @@
       "trap": "opportunities.amount is TCV across the full multi-year term, not annual",
       "correct": false,
       "expected": 30999400,
-      "got": 32639601.54,
+      "got": 32337157.1,
       "askedClarification": false,
       "assumptions": [
-        "Used the opportunities.arr__c field as the ARR value for each opportunity (rather than amount, which reflects total contract value).",
-        "'Won deals' = opportunities where is_won = true (140 USD, 91 GBP, 32 CAD deals).",
-        "Since opportunities are recorded in multiple currencies (USD, GBP, CAD), each opportunity's arr__c was converted to USD using the dated_conversion_rates table, matching the opportunity's close_date to the applicable rate period (rate = local currency per USD, so USD value = arr__c / conversion_rate).",
-        "For one CAD opportunity (id 0060325, close_date 2023-06-07) that predates the earliest available CAD conversion rate record (starting 2024-02-01), the earliest known CAD rate (1.35) was used as a fallback.",
-        "Total ARR excludes deleted/duplicate records; is_deleted flag was not explicitly filtered since is_won=true rows all appeared valid."
+        "'Annualized value (ARR)' refers to the opportunities.arr__c field, as opposed to opportunities.amount (which likely represents total contract value).",
+        "'Won deals' means opportunities where is_won = true.",
+        "Amounts are in three currencies (USD, CAD, GBP); converted all to USD using dated_conversion_rates matched to each opportunity's close_date, where conversion_rate represents local-currency-per-USD (so local amount is divided by the rate to get USD).",
+        "Deleted opportunities were not explicitly filtered out, but is_won=true implies closed-won records which are standard reporting records."
       ],
-      "inputTokens": 20057,
-      "outputTokens": 2012,
-      "cost": 0.060233999999999996,
-      "turns": 7,
+      "inputTokens": 10093,
+      "outputTokens": 1096,
+      "cost": 0.031146,
+      "turns": 4,
       "sqlQueries": [
         "SELECT currency_iso_code, count(*), sum(arr__c) FROM opportunities WHERE is_won = true GROUP BY currency_iso_code",
-        "\nSELECT o.currency_iso_code, sum(o.arr__c) as raw_sum,\nsum(o.arr__c / dcr.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND (o.close_date < dcr.next_start_date OR dcr.next_start_date IS NULL)\nWHERE o.is_won = true\nGROUP BY o.currency_iso_code\n",
-        "\nSELECT o.currency_iso_code, count(*) as cnt\nFROM opportunities o\nJOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND (o.close_date < dcr.next_start_date OR dcr.next_start_date IS NULL)\nWHERE o.is_won = true\nGROUP BY o.currency_iso_code\n",
-        "\nSELECT o.id, o.close_date, o.arr__c\nFROM opportunities o\nWHERE o.is_won = true AND o.currency_iso_code='CAD'\nAND NOT EXISTS (\n  SELECT 1 FROM dated_conversion_rates dcr\n  WHERE dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND (o.close_date < dcr.next_start_date OR dcr.next_start_date IS NULL)\n)\n",
-        "SELECT * FROM dated_conversion_rates WHERE iso_code='CAD' ORDER BY start_date",
-        "\nSELECT sum(usd) FROM (\nSELECT o.arr__c / dcr.conversion_rate as usd\nFROM opportunities o\nJOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND (o.close_date < dcr.next_start_date OR dcr.next_start_date IS NULL)\nWHERE o.is_won = true\n\nUNION ALL\n\nSELECT o.arr__c / 1.35 as usd\nFROM opportunities o\nWHERE o.is_won = true AND o.id = '0060325'\n) t\n"
+        "SELECT * FROM dated_conversion_rates ORDER BY iso_code, start_date",
+        "SELECT sum(\n  CASE WHEN o.currency_iso_code='USD' THEN o.arr__c\n       ELSE o.arr__c / dcr.conversion_rate END\n) AS total_arr_usd\nFROM opportunities o\nLEFT JOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND o.close_date < dcr.next_start_date\nWHERE o.is_won = true"
       ],
-      "note": "off by +5.3%"
+      "note": "off by +4.3%"
     },
     {
       "id": "D9",
@@ -367,33 +371,22 @@
       "got": 3828263.73,
       "askedClarification": false,
       "assumptions": [
-        "\"Customers\" = accounts with is_active__c = true (these are exactly the 63 accounts that have a non-null total_arr__c value)",
-        "\"Billed outside the US\" = accounts.billing_country != 'US' (excludes NULL/blank billing_country records)",
-        "accounts.total_arr__c is stored in the account's local billing currency (not pre-converted to USD), matching the currency used in that account's contracts (GB->GBP, CA->CAD, US->USD)",
-        "Used the dated_conversion_rates table to convert local currency to USD, applying the rate valid for today's date (2026-09-11): GBP rate 0.75, CAD rate 1.36 (both from the 2026-02-01 to 2027-02-01 band)",
-        "Conversion convention: conversion_rate = local currency units per 1 USD, so USD amount = local amount / conversion_rate (verified against realistic historical GBP/USD and CAD/USD rates)",
-        "Only GB and CA appear as non-US billing countries among active customers in this dataset"
+        "accounts.total_arr__c represents ARR in the account's local billing currency (not already USD), matching contracts.currency_iso_code for that account (US->USD, CA->CAD, GB->GBP).",
+        "'Customers billed outside the US' means accounts.billing_country <> 'US' (i.e., CA and GB accounts).",
+        "Used the most recent dated_conversion_rates period as of today (2026-09-11), i.e. the 2026-02-01 to 2027-02-01 rates: CAD=1.36, GBP=0.75 (rate = local currency units per 1 USD, so USD amount = local amount / rate).",
+        "Only accounts.total_arr__c was used (not summing contracts.arr) since it's the account-level ARR rollup field intended to represent current total ARR.",
+        "No filtering on is_active__c or customer_status__c was applied beyond what's implied by total_arr__c being populated."
       ],
-      "inputTokens": 77500,
-      "outputTokens": 5260,
-      "cost": 0.2076,
-      "turns": 13,
+      "inputTokens": 15530,
+      "outputTokens": 1832,
+      "cost": 0.04938,
+      "turns": 5,
       "sqlQueries": [
-        "SELECT billing_country, count(*), sum(total_arr__c) FROM accounts WHERE is_active__c = true GROUP BY billing_country ORDER BY 2 DESC LIMIT 30",
+        "SELECT billing_country, count(*), sum(total_arr__c) FROM accounts GROUP BY billing_country ORDER BY 2 DESC LIMIT 30",
         "SELECT DISTINCT currency_iso_code FROM contracts LIMIT 20",
-        "SELECT a.id, a.billing_country, a.total_arr__c, c.currency_iso_code, sum(c.arr) as contract_arr_sum\nFROM accounts a JOIN contracts c ON c.account_id=a.id\nWHERE a.billing_country='GB'\nGROUP BY a.id, a.billing_country, a.total_arr__c, c.currency_iso_code\nLIMIT 20",
-        "SELECT customer_status__c, is_active__c, count(*), sum(total_arr__c), count(total_arr__c) FROM accounts GROUP BY 1,2 ORDER BY 1",
-        "SELECT count(*) as total, count(total_arr__c) as non_null_arr FROM accounts",
-        "SELECT billing_country, count(*), count(total_arr__c), sum(total_arr__c) FROM accounts GROUP BY billing_country",
-        "SELECT billing_country, count(*), count(total_arr__c), sum(total_arr__c) FROM accounts GROUP BY billing_country ORDER BY 2 DESC",
-        "SELECT billing_country, count(*) FROM accounts GROUP BY billing_country ORDER BY 2 DESC",
-        "SELECT billing_country, count(*) as cnt, count(total_arr__c) as arr_non_null, sum(total_arr__c) as arr_sum FROM accounts GROUP BY billing_country ORDER BY 2 DESC",
-        "SELECT is_active__c, count(*), count(total_arr__c) FROM accounts GROUP BY 1",
-        "SELECT is_active__c, count(*) FROM accounts GROUP BY 1 ORDER BY 1",
         "SELECT * FROM dated_conversion_rates ORDER BY iso_code, start_date",
-        "SELECT a.billing_country, c.currency_iso_code, count(*) FROM accounts a JOIN contracts c ON c.account_id=a.id WHERE a.is_active__c=true GROUP BY 1,2",
-        "\nSELECT a.billing_country,\n       sum(a.total_arr__c) as local_sum,\n       CASE a.billing_country WHEN 'GB' THEN 0.75 WHEN 'CA' THEN 1.36 ELSE 1 END as rate,\n       sum(a.total_arr__c) / CASE a.billing_country WHEN 'GB' THEN 0.75 WHEN 'CA' THEN 1.36 ELSE 1 END as usd_sum\nFROM accounts a\nWHERE a.is_active__c = true AND a.billing_country != 'US'\nGROUP BY a.billing_country\n",
-        "\nSELECT sum(usd_sum) as total_usd FROM (\nSELECT sum(a.total_arr__c) / CASE a.billing_country WHEN 'GB' THEN 0.75 WHEN 'CA' THEN 1.36 ELSE 1 END as usd_sum\nFROM accounts a\nWHERE a.is_active__c = true AND a.billing_country != 'US'\nGROUP BY a.billing_country\n) t\n"
+        "SELECT a.billing_country, c.currency_iso_code, count(*) FROM accounts a JOIN contracts c ON a.id=c.account_id GROUP BY 1,2",
+        "\nSELECT billing_country, sum(total_arr__c) as raw_sum,\n  CASE billing_country WHEN 'CA' THEN sum(total_arr__c)/1.36 WHEN 'GB' THEN sum(total_arr__c)/0.75 END as usd_sum\nFROM accounts\nWHERE billing_country <> 'US'\nGROUP BY billing_country\n"
       ],
       "note": "off by -68.4%"
     },
@@ -406,19 +399,23 @@
       "got": 12,
       "askedClarification": false,
       "assumptions": [
-        "\"Last month\" is interpreted as August 2026 (month = '2026-08-01' in product_usage_monthly), based on today's date of 2026-09-11.",
-        "\"Logged into the product\" is interpreted as having active_users > 0 in product_usage_monthly for that month.",
-        "\"Active contract\" is interpreted as a contract with status = 'Activated' (the status values present are Activated, Cancelled, Draft, Expired), regardless of contract start/end dates.",
-        "An account counts if it has at least one usage record for August 2026 with active_users > 0 and has no contract row with status = 'Activated'."
+        "\"Last month\" interpreted as August 2026, the most recent fully completed calendar month relative to today's date (2026-09-11).",
+        "\"Logged into the product\" interpreted as having active_users > 0 in product_usage_monthly for that account/month.",
+        "\"Active contract\" interpreted as a contract with status = 'Activated' whose start_date and end_date span the current date (2026-09-11), i.e., currently in force.",
+        "Excluded contracts with status Draft, Cancelled, or Expired, and Activated contracts that have already ended or not yet started, from counting as 'active'.",
+        "Counted distinct accounts (deduplicated) meeting both conditions."
       ],
-      "inputTokens": 6614,
-      "outputTokens": 794,
-      "cost": 0.021168,
-      "turns": 3,
+      "inputTokens": 13065,
+      "outputTokens": 1227,
+      "cost": 0.038400000000000004,
+      "turns": 5,
       "sqlQueries": [
         "SELECT DISTINCT status FROM contracts;",
-        "SELECT MIN(month), MAX(month) FROM product_usage_monthly;",
-        "\nSELECT COUNT(DISTINCT p.account_id)\nFROM product_usage_monthly p\nWHERE p.month = '2026-08-01'\n  AND p.active_users > 0\n  AND NOT EXISTS (\n    SELECT 1 FROM contracts c\n    WHERE c.account_id = p.account_id\n      AND c.status = 'Activated'\n  );\n"
+        "SELECT min(month), max(month) FROM product_usage_monthly;",
+        "SELECT count(*) FROM product_usage_monthly WHERE month='2026-08-01';",
+        "SELECT status, count(*), min(start_date), max(end_date) FROM contracts GROUP BY status;",
+        "\nSELECT count(DISTINCT p.account_id)\nFROM product_usage_monthly p\nWHERE p.month = '2026-08-01' AND p.active_users > 0\nAND NOT EXISTS (\n  SELECT 1 FROM contracts c\n  WHERE c.account_id = p.account_id\n    AND c.status = 'Activated'\n    AND c.start_date <= DATE '2026-09-11'\n    AND c.end_date >= DATE '2026-09-11'\n);\n",
+        "SELECT count(DISTINCT account_id) FROM product_usage_monthly WHERE month='2026-08-01' AND active_users>0;"
       ],
       "note": ""
     },
@@ -431,24 +428,21 @@
       "got": 197,
       "askedClarification": false,
       "assumptions": [
-        "'Real' accounts = accounts not flagged as deleted (is_deleted = false)",
-        "Checked for 'test'/'demo'/'sample'/'dup' style naming patterns - none found among account names",
-        "Checked for duplicate account names - all 8 duplicate-named accounts have one active (is_deleted=false) copy and one soft-deleted (is_deleted=true) copy, so filtering on is_deleted=false already removes the duplicates without additional dedup logic needed",
-        "Total accounts = 205, of which 8 are marked is_deleted=true, leaving 197 non-deleted, non-duplicate accounts"
+        "'Non-test, non-duplicate' accounts are interpreted as records where is_deleted = false.",
+        "The 8 accounts flagged is_deleted = true are exact duplicates (matching name/website/domain) of active records and represent the duplicate/test entries to exclude.",
+        "No accounts had names indicating test/demo/sample data (checked via ILIKE '%test%','%demo%','%dummy%','%sample%' - none found), so is_deleted is the relevant flag for filtering."
       ],
-      "inputTokens": 18052,
-      "outputTokens": 1420,
-      "cost": 0.050304,
-      "turns": 6,
+      "inputTokens": 25433,
+      "outputTokens": 1123,
+      "cost": 0.062096,
+      "turns": 4,
       "sqlQueries": [
-        "SELECT count(*) FROM accounts",
-        "SELECT is_deleted, count(*) FROM accounts GROUP BY is_deleted",
-        "SELECT name, count(*) FROM accounts WHERE is_deleted = false GROUP BY name HAVING count(*) > 1 ORDER BY count(*) DESC",
-        "SELECT id, name FROM accounts WHERE is_deleted = false AND (name ILIKE '%test%' OR name ILIKE '%dup%' OR name ILIKE '%demo%' OR name ILIKE '%sample%') ORDER BY name",
-        "SELECT id, name, is_deleted FROM accounts WHERE name ILIKE '%test%' OR name ILIKE '%dup%' OR name ILIKE '%demo%' OR name ILIKE '%sample%' OR name ILIKE '%zzz%'",
-        "SELECT name, count(*) FROM accounts GROUP BY name HAVING count(*)>1",
-        "SELECT id, name, is_deleted, created_date FROM accounts WHERE name IN ('Orchard Foods','Vantage Supply','Delta Supply Ltd','Maple Freight Ltd','Redwood Retail Group LLC','Vantage Partners','Crescent Labs LLC','Beacon Distribution Inc') ORDER BY name",
-        "SELECT count(*) FROM accounts WHERE is_deleted = false"
+        "SELECT count(*) FROM accounts;",
+        "SELECT name, count(*) FROM accounts GROUP BY name HAVING count(*)>1 ORDER BY count(*) DESC LIMIT 20;",
+        "SELECT count(*) FROM accounts WHERE name ILIKE '%test%' OR name ILIKE '%demo%' OR name ILIKE '%dummy%' OR name ILIKE '%sample%';",
+        "SELECT count(*) FROM accounts WHERE is_deleted = true;",
+        "SELECT * FROM accounts WHERE name IN ('Orchard Foods','Vantage Supply','Delta Supply Ltd','Maple Freight Ltd','Redwood Retail Group LLC','Vantage Partners','Crescent Labs LLC','Beacon Distribution Inc') ORDER BY name;",
+        "SELECT is_deleted, count(*) FROM accounts GROUP BY is_deleted;"
       ],
       "note": "off by +3.1%"
     },
@@ -461,18 +455,17 @@
       "got": 129,
       "askedClarification": false,
       "assumptions": [
-        "\"Currently in force\" means the contract's status is not Draft or Cancelled AND today's date (2026-09-11) falls between start_date and end_date.",
-        "All contracts with status 'Activated' currently fall within their start/end date range, so the count matches simply filtering on status = 'Activated'.",
-        "Expired contracts are excluded since their end_date has already passed."
+        "\"Currently in force\" is interpreted as contracts with status = 'Activated' (excluding 'Draft', 'Cancelled', and 'Expired').",
+        "All 129 'Activated' contracts also have start_date <= 2026-09-11 <= end_date, confirming they are active as of today's date.",
+        "Today's date is treated as 2026-09-11 per the prompt."
       ],
-      "inputTokens": 8471,
-      "outputTokens": 649,
-      "cost": 0.023431999999999998,
-      "turns": 4,
+      "inputTokens": 6072,
+      "outputTokens": 539,
+      "cost": 0.017534,
+      "turns": 3,
       "sqlQueries": [
         "SELECT status, count(*) FROM contracts GROUP BY status",
-        "SELECT count(*) FROM contracts WHERE status NOT IN ('Draft','Cancelled') AND start_date <= '2026-09-11' AND end_date >= '2026-09-11'",
-        "SELECT status, count(*) FROM contracts WHERE start_date <= '2026-09-11' AND end_date >= '2026-09-11' GROUP BY status"
+        "SELECT status, count(*) FROM contracts WHERE status='Activated' AND start_date<='2026-09-11' AND end_date>='2026-09-11' GROUP BY status"
       ],
       "note": ""
     },
@@ -486,23 +479,23 @@
       "askedClarification": false,
       "assumptions": [
         "Fiscal year starts Feb 1, so fiscal quarters are Feb-Apr (Q1), May-Jul (Q2), Aug-Oct (Q3), Nov-Jan (Q4).",
-        "Today (2026-09-11) falls in fiscal Q3, so quarter-to-date = Aug 1, 2026 through Sep 11, 2026.",
-        "'New ARR' is interpreted as ARR from won opportunities where opportunities.type = 'New Business' (new-logo bookings), as distinct from Renewal, Upsell, and Expansion ARR.",
-        "'Closed' means opportunities.is_won = true (and is_closed = true) with close_date in the quarter-to-date window.",
-        "Checked opportunities.arr__c for all New Business opportunities with close_date between 2026-08-01 and 2026-09-11 and is_won = true — none exist, so New ARR closed this quarter-to-date is $0 (no currency conversion was needed since there were no qualifying rows)."
+        "Today (2026-09-11) falls in fiscal Q3, so 'quarter to date' = Aug 1, 2026 through Sep 11, 2026.",
+        "'New ARR' refers to ARR (arr__c field) from opportunities of Type = 'New Business' that are Closed Won (is_won = true), based on close_date falling in the quarter-to-date window.",
+        "Checked all closed-won opportunities (any type) with close_date between 2026-08-01 and 2026-09-11; none had Type = 'New Business' (only Renewal, Expansion, and Upsell deals closed in this window), so New ARR closed QTD = $0.",
+        "No currency conversion was needed since there are no qualifying deals to convert to USD."
       ],
-      "inputTokens": 24789,
-      "outputTokens": 2965,
-      "cost": 0.07922799999999999,
+      "inputTokens": 18416,
+      "outputTokens": 2114,
+      "cost": 0.057971999999999996,
       "turns": 6,
       "sqlQueries": [
-        "SELECT DISTINCT type FROM opportunities;",
-        "SELECT DISTINCT currency_iso_code FROM opportunities;",
-        "SELECT o.id, o.close_date, o.arr__c, o.currency_iso_code\nFROM opportunities o\nWHERE o.type='New Business' AND o.is_won=true\nAND o.close_date >= '2026-08-01' AND o.close_date <= '2026-09-11'\nORDER BY o.close_date;",
-        "SELECT * FROM dated_conversion_rates WHERE iso_code IN ('CAD','GBP') ORDER BY iso_code, start_date DESC LIMIT 20;",
-        "SELECT o.id, o.close_date, o.arr__c, o.currency_iso_code, o.is_won, o.is_closed, o.stage_name\nFROM opportunities o\nWHERE o.type='New Business'\nAND o.close_date >= '2026-08-01' AND o.close_date <= '2026-09-11'\nORDER BY o.close_date;",
-        "SELECT o.id, o.close_date, o.type, o.arr__c, o.currency_iso_code, o.is_won\nFROM opportunities o\nWHERE o.is_won=true\nAND o.close_date >= '2026-08-01' AND o.close_date <= '2026-09-11'\nORDER BY o.close_date;",
-        "SELECT COALESCE(SUM(arr__c),0) AS total_new_arr\nFROM opportunities\nWHERE type='New Business' AND is_won=true\nAND close_date >= '2026-08-01' AND close_date <= '2026-09-11';"
+        "SELECT DISTINCT type FROM opportunities",
+        "SELECT DISTINCT currency_iso_code FROM opportunities",
+        "\nSELECT o.currency_iso_code, SUM(o.arr__c) as arr_sum, COUNT(*)\nFROM opportunities o\nWHERE o.type = 'New Business'\n  AND o.is_won = true\n  AND o.close_date >= '2026-08-01'\n  AND o.close_date <= '2026-09-11'\nGROUP BY o.currency_iso_code\n",
+        "SELECT DISTINCT stage_name, is_closed, is_won FROM opportunities",
+        "SELECT MIN(close_date), MAX(close_date) FROM opportunities WHERE is_won=true",
+        "\nSELECT o.type, o.currency_iso_code, SUM(o.arr__c) as arr_sum, COUNT(*)\nFROM opportunities o\nWHERE o.is_won = true\n  AND o.close_date >= '2026-08-01'\n  AND o.close_date <= '2026-09-11'\nGROUP BY o.type, o.currency_iso_code\n",
+        "\nSELECT o.id, o.type, o.close_date, o.arr__c, o.currency_iso_code\nFROM opportunities o\nWHERE o.type='New Business' AND o.is_won=true\nORDER BY o.close_date DESC\nLIMIT 10\n"
       ],
       "note": "off by -100.0%"
     },
@@ -512,29 +505,21 @@
       "trap": "reading FY27 as calendar 2027",
       "correct": false,
       "expected": 2234100,
-      "got": 2193105.88,
-      "askedClarification": false,
+      "got": null,
+      "askedClarification": true,
       "assumptions": [
-        "Fiscal year follows the common Salesforce fiscal calendar convention: FY starts Feb 1 and ends Jan 31. So FY27 = Feb 1, 2026 – Jan 31, 2027, and FY27 Q1 = Feb 1, 2026 – Apr 30, 2026.",
-        "\"New ARR\" refers to ARR from opportunities with type = 'New Business' (i.e., new customer bookings, excluding Renewal, Expansion, and Upsell opportunity types).",
-        "Only opportunities with is_won = true and close_date within the FY27 Q1 window are counted as 'closed' in that quarter.",
-        "ARR figures were converted to USD using the arr__c field divided by the applicable conversion_rate from dated_conversion_rates for the opportunity's close_date and currency (conversion_rate is expressed as units of local currency per 1 USD).",
-        "Opportunity currencies encountered in this period were USD, GBP, and CAD, all converted to USD accordingly."
+        "New ARR closed = sum of arr__c (converted to USD) for opportunities with is_won = true and close_date falling within the FY27 Q1 window, representing new business (as opposed to renewals/expansions, unless the question intends all closed-won ARR).",
+        "No fiscal calendar table exists in the schema, so the FY27 Q1 date range must be confirmed with the business user before computing an accurate figure."
       ],
-      "inputTokens": 40788,
-      "outputTokens": 4314,
-      "cost": 0.124716,
-      "turns": 8,
+      "inputTokens": 7844,
+      "outputTokens": 2451,
+      "cost": 0.040198,
+      "turns": 3,
       "sqlQueries": [
-        "SELECT min(close_date), max(close_date) FROM opportunities;",
-        "SELECT date_trunc('month', close_date) AS month, count(*), sum(arr__c) FROM opportunities WHERE is_won = true GROUP BY 1 ORDER BY 1;",
-        "SELECT type, count(*) FROM opportunities GROUP BY 1 ORDER BY 2 DESC;",
-        "SELECT currency_iso_code, count(*) FROM opportunities WHERE type='New Business' AND is_won=true AND close_date >= '2026-02-01' AND close_date < '2026-05-01' GROUP BY 1;",
-        "\nSELECT o.currency_iso_code, sum(o.arr__c) as raw_sum,\n  sum(o.arr__c / cr.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates cr\n  ON cr.iso_code = o.currency_iso_code\n  AND o.close_date >= cr.start_date\n  AND (o.close_date < cr.next_start_date OR cr.next_start_date IS NULL)\nWHERE o.type='New Business' AND o.is_won=true\n  AND o.close_date >= '2026-02-01' AND o.close_date < '2026-05-01'\nGROUP BY 1;\n",
-        "SELECT * FROM dated_conversion_rates WHERE iso_code IN ('USD','GBP','CAD') ORDER BY iso_code, start_date;",
-        "\nSELECT sum(o.arr__c / cr.conversion_rate) as total_usd\nFROM opportunities o\nJOIN dated_conversion_rates cr\n  ON cr.iso_code = o.currency_iso_code\n  AND o.close_date >= cr.start_date\n  AND (o.close_date < cr.next_start_date OR cr.next_start_date IS NULL)\nWHERE o.type='New Business' AND o.is_won=true\n  AND o.close_date >= '2026-02-01' AND o.close_date < '2026-05-01';\n"
+        "SELECT MIN(close_date), MAX(close_date) FROM opportunities;",
+        "SELECT is_won, is_closed, COUNT(*), MIN(close_date), MAX(close_date) FROM opportunities WHERE close_date >= '2027-01-01' GROUP BY is_won, is_closed;"
       ],
-      "note": "off by -1.8%"
+      "note": "asked for clarification on an answerable question"
     },
     {
       "id": "F3",
@@ -542,23 +527,23 @@
       "trap": "wrong quarter boundaries for renewals",
       "correct": false,
       "expected": 26,
-      "got": 31,
+      "got": 3,
       "askedClarification": false,
       "assumptions": [
-        "\"Active contracts\" refers to contracts with status = 'Activated' in the contracts table.",
-        "Fiscal year is assumed to align with the calendar year (Jan–Dec), so FY27 Q4 = October 1, 2026 through December 31, 2026.",
-        "\"Expire during FY27 Q4\" means the contract's end_date falls within that date range.",
-        "Today's date (2026-09-11) does not affect the definition of FY27 Q4, which is a future period relative to today."
+        "'Active contracts' refers to contracts with status = 'Activated' in the contracts table.",
+        "Fiscal year is assumed to align with the calendar year, so FY27 Q4 = October 1, 2027 through December 31, 2027.",
+        "'Expire during FY27 Q4' means the contract's end_date falls within that date range.",
+        "Contract counts are based on the raw contracts table without deduplication or currency conversion, since only the count (not ARR value) is needed."
       ],
-      "inputTokens": 6950,
-      "outputTokens": 1001,
-      "cost": 0.02391,
+      "inputTokens": 6432,
+      "outputTokens": 671,
+      "cost": 0.019574,
       "turns": 3,
       "sqlQueries": [
-        "SELECT DISTINCT status FROM contracts;",
-        "SELECT COUNT(*) FROM contracts WHERE status='Activated' AND end_date BETWEEN '2026-10-01' AND '2026-12-31';"
+        "SELECT status, COUNT(*) FROM contracts GROUP BY status;",
+        "SELECT COUNT(*) FROM contracts WHERE status = 'Activated' AND end_date >= '2027-10-01' AND end_date <= '2027-12-31';"
       ],
-      "note": "off by +19.2%"
+      "note": "off by -88.5%"
     },
     {
       "id": "F4",
@@ -566,21 +551,25 @@
       "trap": "including renewals and Omitted deals in pipeline; wrong quarter dates",
       "correct": false,
       "expected": 6755583.333333333,
-      "got": 4549901.96,
+      "got": 4549902,
       "askedClarification": false,
-      "assumptions": "\n<parameter name=\"assumptions\">[\"Fiscal year is assumed to start Feb 1 (confirmed by the dated_conversion_rates table, whose rate periods reset on Feb 1 each year), so FY27 = Feb 2026\\u2013Jan 2027 and FY27 Q4 = Nov 2026\\u2013Jan 2027 (close_date basis).\", \"'Open pipeline' = opportunities where is_closed = false.\", \"'New-business and expansion' = opportunities with type in ('New Business','Expansion'); 'Upsell' type opportunities were excluded since they are recorded as a separate category from 'Expansion'.\", \"'Omitted' refers to forecast_category = 'Omitted', which was excluded per instructions; all other forecast categories (Pipeline, Best Case, Commit) were included.\", \"Pipeline value uses the ARR field (arr__c), converted to USD using the dated_conversion_rates table matched to each opportunity's close_date (rate interpreted as local-currency-per-USD, so USD amount = arr__c / conversion_rate).\", \"Deal-level ARR (arr__c) was used rather than Amount, consistent with the question asking for 'ARR'.\"]",
-      "inputTokens": 28128,
-      "outputTokens": 3240,
-      "cost": 0.088656,
-      "turns": 6,
+      "assumptions": "\n<parameter name=\"assumptions\">[\"Fiscal year is defined as Feb 1–Jan 31 (i.e., FY27 runs Feb 2026–Jan 2027), based on the observed pattern that opportunity close_date data runs continuously through Jan 2027 with only a handful of records in Feb 2027 (consistent with FY27 Q4 = Nov 2026–Jan 2027 being the last full quarter of data).\", \"\\\"Open\\\" pipeline = opportunities where is_closed = false.\", \"\\\"New-business and expansion pipeline\\\" = opportunities with type in ('New Business','Expansion'); Upsell and Renewal types are excluded as they are not new-business/expansion.\", \"Excluded any opportunity with forecast_category = 'Omitted' (3 opps totaling $137,500 local-currency ARR excluded).\", \"ARR is taken from the opportunities.arr__c field.\", \"Non-USD ARR amounts (CAD, GBP) were converted to USD using the dated_conversion_rates table, matching each opportunity's close_date to the applicable rate period, with conversion computed as local_amount / conversion_rate (rates expressed as local currency per 1 USD).\", \"Result: 36 open qualifying opportunities totaling ~$4,549,902 in USD ARR for FY27 Q4 (Nov 2026–Jan 2027).\"]",
+      "inputTokens": 63008,
+      "outputTokens": 5910,
+      "cost": 0.185116,
+      "turns": 10,
       "sqlQueries": [
-        "select date_trunc('month', close_date) as month, count(*) from opportunities group by 1 order by 1",
-        "select type, count(*) from opportunities group by 1 order by 2 desc",
-        "select forecast_category, count(*) from opportunities group by 1 order by 2 desc",
-        "select currency_iso_code, count(*) from opportunities group by 1 order by 2 desc",
-        "select * from dated_conversion_rates order by iso_code, start_date limit 20",
-        "\nselect sum(o.arr__c / r.conversion_rate) as pipeline_usd_arr, count(*) as n_opps\nfrom opportunities o\njoin dated_conversion_rates r\n  on r.iso_code = o.currency_iso_code\n  and o.close_date >= r.start_date\n  and o.close_date < r.next_start_date\nwhere o.is_closed = false\n  and o.forecast_category <> 'Omitted'\n  and o.type in ('New Business','Expansion')\n  and o.close_date >= '2026-11-01' and o.close_date < '2027-02-01'\n",
-        "\nselect o.type, o.currency_iso_code, count(*), sum(o.arr__c) as arr_local, sum(o.arr__c/r.conversion_rate) as arr_usd\nfrom opportunities o\njoin dated_conversion_rates r\n  on r.iso_code = o.currency_iso_code\n  and o.close_date >= r.start_date\n  and o.close_date < r.next_start_date\nwhere o.is_closed = false\n  and o.forecast_category <> 'Omitted'\n  and o.type in ('New Business','Expansion')\n  and o.close_date >= '2026-11-01' and o.close_date < '2027-02-01'\ngroup by 1,2\norder by 1,2\n"
+        "SELECT DISTINCT type FROM opportunities;",
+        "SELECT DISTINCT forecast_category FROM opportunities;",
+        "SELECT MIN(close_date), MAX(close_date) FROM opportunities;",
+        "SELECT date_trunc('month', close_date) AS mon, COUNT(*) FROM opportunities WHERE close_date >= '2026-01-01' GROUP BY 1 ORDER BY 1;",
+        "SELECT date_trunc('month', close_date) AS mon, COUNT(*) FROM opportunities GROUP BY 1 ORDER BY 1;",
+        "SELECT DISTINCT currency_iso_code FROM opportunities;",
+        "SELECT * FROM dated_conversion_rates ORDER BY iso_code, start_date LIMIT 20;",
+        "\nSELECT o.currency_iso_code, COUNT(*), SUM(o.arr__c) as raw_sum,\nSUM(o.arr__c / dcr.conversion_rate) as usd_sum\nFROM opportunities o\nJOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND o.close_date < dcr.next_start_date\nWHERE o.is_closed = false\n  AND o.type IN ('New Business','Expansion')\n  AND o.forecast_category <> 'Omitted'\n  AND o.close_date >= '2026-11-01' AND o.close_date < '2027-02-01'\nGROUP BY o.currency_iso_code;\n",
+        "\nSELECT SUM(o.arr__c / dcr.conversion_rate) as total_usd_arr, COUNT(*) as cnt\nFROM opportunities o\nJOIN dated_conversion_rates dcr\n  ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date\n  AND o.close_date < dcr.next_start_date\nWHERE o.is_closed = false\n  AND o.type IN ('New Business','Expansion')\n  AND o.forecast_category <> 'Omitted'\n  AND o.close_date >= '2026-11-01' AND o.close_date < '2027-02-01';\n",
+        "\nSELECT o.forecast_category, COUNT(*), SUM(o.arr__c) \nFROM opportunities o\nWHERE o.is_closed = false\n  AND o.type IN ('New Business','Expansion')\n  AND o.close_date >= '2026-11-01' AND o.close_date < '2027-02-01'\nGROUP BY 1;\n",
+        "\nSELECT COUNT(*) FROM opportunities o\nWHERE o.is_closed = false\n  AND o.type IN ('New Business','Expansion')\n  AND o.forecast_category <> 'Omitted'\n  AND o.close_date >= '2026-11-01' AND o.close_date < '2027-02-01'\n  AND o.currency_iso_code IS NULL;\n"
       ],
       "note": "off by -32.6%"
     },
@@ -593,31 +582,21 @@
       "got": 152430.77,
       "askedClarification": false,
       "assumptions": [
-        "\"Mid-Market segment\" refers to accounts.sales_segment__c = 'Mid-Market' (the field explicitly labeled 'Sales Segment'), since the segment__c field uses inconsistent/overlapping codes (MM/ENT/SMB) that don't align cleanly with sales_segment__c.",
-        "\"Customer\" is defined as accounts with customer_status__c = 'Active' (the field labeled 'Customer Status').",
-        "ARR is taken from accounts.total_arr__c (labeled 'Total ARR'), which has no associated currency code field, so it is assumed to already be expressed in USD.",
-        "Accounts with a null total_arr__c value (13 of the 34 Active Mid-Market accounts had non-null ARR) were excluded from the average rather than treated as $0, since a null value indicates missing/unrecorded ARR rather than confirmed zero ARR.",
-        "The average is a simple (unweighted) mean of total_arr__c across the 13 qualifying Active Mid-Market accounts: sum $1,981,600 / 13 accounts = $152,430.77."
+        "\"Mid-Market segment\" is defined via the accounts.sales_segment__c field (value = 'Mid-Market'), since this is the explicit \"Sales Segment\" attribute.",
+        "\"Customer\" is defined as an account with customer_status__c = 'Active' (i.e., a currently active paying customer, as opposed to Prospect/Churned/At Risk).",
+        "ARR is taken from accounts.total_arr__c, which represents the account's total ARR already expressed in USD (no currency conversion needed since this field has no associated currency code, unlike opportunities/contracts).",
+        "The average is computed as AVG(total_arr__c) over active Mid-Market accounts, which naturally excludes records where total_arr__c is NULL (treated as missing/unknown data rather than zero ARR) — 13 of the 34 active Mid-Market accounts had a non-null ARR value, giving avg = $152,430.77."
       ],
-      "inputTokens": 57825,
-      "outputTokens": 5289,
-      "cost": 0.16854000000000002,
-      "turns": 12,
+      "inputTokens": 22909,
+      "outputTokens": 3180,
+      "cost": 0.07761799999999999,
+      "turns": 6,
       "sqlQueries": [
-        "select distinct segment__c, sales_segment__c from accounts limit 20",
-        "select distinct customer_status__c from accounts limit 20",
-        "select customer_status__c, count(*), avg(total_arr__c) from accounts where sales_segment__c='Mid-Market' group by 1",
-        "select customer_status__c, is_active__c, count(*), avg(total_arr__c) from accounts where sales_segment__c='Mid-Market' group by 1,2",
-        "select customer_status__c, count(*) total, count(total_arr__c) non_null_arr, sum(total_arr__c) sum_arr from accounts where sales_segment__c='Mid-Market' group by 1",
-        "select distinct currency_iso_code from contracts;",
-        "select status, count(*) from contracts group by 1;",
-        "select customer_status__c, is_active__c, count(*), count(total_arr__c) from accounts group by 1,2 order by 1,2",
-        "select customer_status__c, is_active__c, count(*), count(total_arr__c) from accounts where sales_segment__c='Mid-Market' group by 1,2 order by 1,2",
-        "select is_active__c, count(*) from accounts where sales_segment__c='Mid-Market' group by 1",
-        "select count(*) from accounts where sales_segment__c='Mid-Market'",
-        "select is_active__c, customer_status__c, count(*) from accounts where sales_segment__c='Mid-Market' group by 1,2 order by 1,2",
-        "select count(*), avg(total_arr__c), sum(total_arr__c) from accounts where sales_segment__c='Mid-Market' and is_active__c=true",
-        "select sum(total_arr__c)::numeric, count(*) , sum(total_arr__c)/count(*) as avg_arr from accounts where sales_segment__c='Mid-Market' and customer_status__c='Active' and total_arr__c is not null"
+        "SELECT segment__c, sales_segment__c, customer_status__c, count(*) FROM accounts GROUP BY 1,2,3 ORDER BY 4 DESC LIMIT 30",
+        "SELECT count(*), avg(total_arr__c), sum(total_arr__c) FROM accounts WHERE sales_segment__c='Mid-Market' AND customer_status__c='Active'",
+        "SELECT is_active__c, count(*), avg(total_arr__c) FROM accounts WHERE sales_segment__c='Mid-Market' GROUP BY 1",
+        "SELECT customer_status__c, is_active__c, count(*), count(total_arr__c) as non_null, avg(total_arr__c) FROM accounts WHERE sales_segment__c='Mid-Market' GROUP BY 1,2 ORDER BY 1,2",
+        "SELECT customer_status__c, count(*), count(total_arr__c) as non_null FROM accounts GROUP BY 1"
       ],
       "note": "off by -25.9%"
     },
@@ -627,27 +606,27 @@
       "trap": "paying customers with zero product usage",
       "correct": false,
       "expected": 11,
-      "got": 14,
+      "got": 13,
       "askedClarification": false,
       "assumptions": [
-        "'Current customers' defined as accounts where customer_status__c = 'Active' (124 such accounts total)",
-        "'Last month' relative to today's date (2026-09-11) is interpreted as August 2026 (month = 2026-08-01)",
-        "Accounts with no product_usage_monthly record for August 2026 are treated as having zero active users (1 such account)",
-        "13 accounts had an explicit product_usage_monthly record for August 2026 with active_users = 0",
-        "Total of 14 = 13 (explicit zero) + 1 (no record)"
+        "'Current customers' defined as accounts with customer_status__c = 'Active' (124 such accounts total)",
+        "'Last month' relative to today's date (2026-09-11) is August 2026, i.e. product_usage_monthly.month = '2026-08-01'",
+        "Counted accounts with an explicit active_users = 0 record for that month; 1 additional active customer had no usage record at all for August 2026 and was not counted as 'zero active users' since no data exists"
       ],
-      "inputTokens": 7429,
-      "outputTokens": 1282,
-      "cost": 0.027678,
-      "turns": 3,
+      "inputTokens": 10309,
+      "outputTokens": 1327,
+      "cost": 0.033888,
+      "turns": 4,
       "sqlQueries": [
-        "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 3 DESC;",
-        "SELECT max(month), min(month) FROM product_usage_monthly;",
-        "\nSELECT count(*) FROM accounts a\nWHERE a.customer_status__c = 'Active'\nAND NOT EXISTS (\n  SELECT 1 FROM product_usage_monthly p\n  WHERE p.account_id = a.id\n    AND p.month = '2026-08-01'\n    AND p.active_users > 0\n);\n",
-        "\nSELECT count(*) FROM accounts a\nJOIN product_usage_monthly p ON p.account_id = a.id AND p.month='2026-08-01'\nWHERE a.customer_status__c='Active' AND p.active_users = 0;\n",
-        "\nSELECT count(*) FROM accounts a\nWHERE a.customer_status__c='Active'\nAND NOT EXISTS (SELECT 1 FROM product_usage_monthly p WHERE p.account_id=a.id AND p.month='2026-08-01');\n"
+        "SELECT DISTINCT customer_status__c FROM accounts",
+        "SELECT DISTINCT is_active__c FROM accounts",
+        "SELECT max(month), min(month) FROM product_usage_monthly",
+        "SELECT customer_status__c, is_active__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 1,2",
+        "SELECT count(*) FROM accounts a WHERE a.customer_status__c='Active'",
+        "\nSELECT count(*) FROM accounts a\nWHERE a.customer_status__c='Active'\nAND EXISTS (\n  SELECT 1 FROM product_usage_monthly p\n  WHERE p.account_id = a.id AND p.month = '2026-08-01' AND p.active_users = 0\n)\n",
+        "\nSELECT count(*) FROM accounts a\nWHERE a.customer_status__c='Active'\nAND NOT EXISTS (\n  SELECT 1 FROM product_usage_monthly p\n  WHERE p.account_id = a.id AND p.month = '2026-08-01'\n)\n"
       ],
-      "note": "off by +27.3%"
+      "note": "off by +18.2%"
     },
     {
       "id": "M3",
@@ -658,24 +637,25 @@
       "got": 2577799.02,
       "askedClarification": false,
       "assumptions": [
-        "\"Open pipeline\" means opportunities where is_closed = false (and is_deleted = false).",
-        "\"Reps who are no longer active employees\" refers to the opportunity owner (opportunities.owner_id -> users.id) having users.is_active = false.",
+        "\"Open pipeline\" = opportunities where is_closed = false (and is_deleted = false).",
+        "\"Owned by reps who are no longer active employees\" = opportunities.owner_id joins to users where users.is_active = false.",
         "ARR is taken from opportunities.arr__c.",
-        "Non-USD ARR amounts were converted to USD using the dated_conversion_rates table, applying the conversion rate whose start_date is the latest one on or before the opportunity's close_date (to handle one opportunity whose close_date fell exactly on/after the last defined rate bracket for its currency).",
-        "There are 15 open opportunities owned by inactive-user reps, totaling ~$2,577,799 in ARR after currency conversion."
+        "Non-USD ARR converted to USD using dated_conversion_rates, matching the opportunity's currency_iso_code and close_date to the rate's [start_date, next_start_date) window; conversion_rate represents local-currency-per-USD, so USD amount = arr__c / conversion_rate.",
+        "One deal (id 0060129, CAD, close_date 2027-02-01) fell exactly on the boundary of the rate table's coverage with no matching window; the most recent known CAD rate (1.36, effective 2026-02-01) was applied for this deal.",
+        "15 open opportunities met the criteria, totaling ~$2,577,799 USD."
       ],
-      "inputTokens": 19402,
-      "outputTokens": 2065,
-      "cost": 0.059454,
+      "inputTokens": 19701,
+      "outputTokens": 2393,
+      "cost": 0.063332,
       "turns": 6,
       "sqlQueries": [
-        "SELECT DISTINCT currency_iso_code FROM opportunities;",
-        "SELECT * FROM dated_conversion_rates LIMIT 20;",
-        "\nSELECT sum(o.arr__c / r.conversion_rate) as open_pipeline_arr_usd\nFROM opportunities o\nJOIN users u ON o.owner_id = u.id\nJOIN dated_conversion_rates r ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date AND o.close_date < r.next_start_date\nWHERE o.is_closed = false\n  AND u.is_active = false\n  AND o.is_deleted = false;\n",
-        "\nSELECT count(*), sum(o.arr__c)\nFROM opportunities o\nJOIN users u ON o.owner_id = u.id\nWHERE o.is_closed = false AND u.is_active=false AND o.is_deleted=false;\n",
-        "\nSELECT count(*)\nFROM opportunities o\nJOIN users u ON o.owner_id = u.id\nLEFT JOIN dated_conversion_rates r ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date AND o.close_date < r.next_start_date\nWHERE o.is_closed = false AND u.is_active=false AND o.is_deleted=false AND r.iso_code IS NULL;\n",
-        "\nSELECT o.id, o.currency_iso_code, o.close_date, o.arr__c\nFROM opportunities o\nJOIN users u ON o.owner_id = u.id\nLEFT JOIN dated_conversion_rates r ON r.iso_code = o.currency_iso_code\n  AND o.close_date >= r.start_date AND o.close_date < r.next_start_date\nWHERE o.is_closed = false AND u.is_active=false AND o.is_deleted=false AND r.iso_code IS NULL;\n",
-        "\nWITH rates AS (\n  SELECT o.id, o.arr__c, o.currency_iso_code, o.close_date,\n    (SELECT r.conversion_rate FROM dated_conversion_rates r\n     WHERE r.iso_code = o.currency_iso_code AND r.start_date <= o.close_date\n     ORDER BY r.start_date DESC LIMIT 1) AS conv_rate\n  FROM opportunities o\n  JOIN users u ON o.owner_id = u.id\n  WHERE o.is_closed = false AND u.is_active = false AND o.is_deleted = false\n)\nSELECT sum(arr__c / conv_rate) AS total_usd, count(*) FROM rates;\n"
+        "select * from dated_conversion_rates limit 20;",
+        "select distinct currency_iso_code from opportunities;",
+        "select sum(o.arr__c / dcr.conversion_rate) as open_pipeline_arr_usd\nfrom opportunities o\njoin users u on o.owner_id = u.id\njoin dated_conversion_rates dcr on dcr.iso_code = o.currency_iso_code\n  and o.close_date >= dcr.start_date and o.close_date < dcr.next_start_date\nwhere o.is_closed = false\n  and u.is_active = false\n  and o.is_deleted = false;",
+        "select count(*) from opportunities o\njoin users u on o.owner_id = u.id\nwhere o.is_closed = false and u.is_active = false and o.is_deleted = false;",
+        "select count(*) from opportunities o\njoin users u on o.owner_id = u.id\nleft join dated_conversion_rates dcr on dcr.iso_code = o.currency_iso_code\n  and o.close_date >= dcr.start_date and o.close_date < dcr.next_start_date\nwhere o.is_closed = false and u.is_active = false and o.is_deleted = false and dcr.iso_code is null;",
+        "select o.id, o.currency_iso_code, o.close_date, o.arr__c from opportunities o\njoin users u on o.owner_id = u.id\nleft join dated_conversion_rates dcr on dcr.iso_code = o.currency_iso_code\n  and o.close_date >= dcr.start_date and o.close_date < dcr.next_start_date\nwhere o.is_closed = false and u.is_active = false and o.is_deleted = false and dcr.iso_code is null;",
+        "\nwith rates as (\n  select o.id, o.arr__c, o.currency_iso_code, o.close_date,\n    coalesce(\n      (select dcr.conversion_rate from dated_conversion_rates dcr\n       where dcr.iso_code = o.currency_iso_code\n         and o.close_date >= dcr.start_date and o.close_date < dcr.next_start_date\n       limit 1),\n      (select dcr.conversion_rate from dated_conversion_rates dcr\n       where dcr.iso_code = o.currency_iso_code\n       order by dcr.start_date desc limit 1)\n    ) as rate\n  from opportunities o\n  join users u on o.owner_id = u.id\n  where o.is_closed = false and u.is_active = false and o.is_deleted = false\n)\nselect sum(arr__c / rate) as total_usd, count(*) from rates;\n"
       ],
       "note": "off by +28.6%"
     },
@@ -683,28 +663,24 @@
       "id": "M4",
       "category": "multi-hop",
       "trap": "churn definition + 60-day grace period",
-      "correct": false,
+      "correct": true,
       "expected": 17,
-      "got": null,
+      "got": 17,
       "askedClarification": false,
-      "assumptions": [],
-      "inputTokens": 53592,
-      "outputTokens": 5347,
-      "cost": 0.16065400000000002,
-      "turns": 8,
+      "assumptions": "\n<parameter name=\"assumptions\">[\"Churn ('logo lost') is defined as an account whose contract reached its natural end (status = 'Expired') with no subsequent (non-Cancelled) contract starting within 60 days of that end_date - i.e., the gap before any next contract exceeds 60 days, or there is no next contract at all.\", \"'Cancelled' contracts (all of which have future start_dates in this dataset) represent bookings/orders cancelled before ever activating, not an existing customer churning, so they were excluded from the churn count (they don't represent an active relationship ending) and were also not counted as a valid 'renewal' that would offset a gap.\", \"'Last 12 months' = contract end_date falling between 2025-09-11 and 2026-09-11 (today's date), since the churn event is dated by when the customer relationship actually ended.\", \"Counting logos means counting distinct accounts/contracts meeting the churn definition, not weighting by ARR.\", \"Each qualifying account had at most one Expired contract in the window, so account count = contract count (17).\"]</parameter>\n<parameter name=\"needs_clarification\">false</parameter>\n</invoke>\n",
+      "inputTokens": 63771,
+      "outputTokens": 4796,
+      "cost": 0.175502,
+      "turns": 7,
       "sqlQueries": [
-        "SELECT DISTINCT status FROM contracts;",
-        "SELECT DISTINCT customer_status__c FROM accounts;",
-        "SELECT account_id, status, start_date, end_date, arr FROM contracts ORDER BY account_id, start_date LIMIT 50;",
-        "SELECT status, count(*), min(start_date), max(start_date), min(end_date), max(end_date) FROM contracts GROUP BY status;",
-        "SELECT customer_status__c, count(*) FROM accounts GROUP BY 1;",
-        "SELECT min(start_date) FROM contracts WHERE status='Activated';",
-        "SELECT count(*) FROM contracts;",
-        "SELECT status, count(*), min(start_date), max(start_date), min(end_date), max(end_date) FROM contracts GROUP BY status ORDER BY status;",
-        "SELECT status, count(*) cnt, min(start_date) min_start, max(start_date) max_start, min(end_date) min_end, max(end_date) max_end FROM contracts GROUP BY status ORDER BY status;",
-        "\nSELECT c.account_id, a.customer_status__c, c.status, c.start_date, c.end_date, c.arr\nFROM contracts c\nJOIN accounts a ON a.id = c.account_id\nWHERE c.account_id IN (SELECT account_id FROM contracts WHERE status='Expired')\nORDER BY c.account_id, c.start_date;\n"
+        "SELECT status, count(*) FROM contracts GROUP BY status;",
+        "SELECT customer_status__c, count(*) FROM accounts GROUP BY customer_status__c;",
+        "SELECT account_id, id, status, start_date, end_date, arr FROM contracts ORDER BY account_id, start_date LIMIT 50;",
+        "\nSELECT c.account_id, c.id, c.status, c.start_date, c.end_date, c.arr\nFROM contracts c\nWHERE c.status IN ('Expired','Cancelled')\nORDER BY c.account_id, c.start_date;\n",
+        "\nSELECT c.account_id, c.id, c.status, c.start_date, c.end_date, c.arr\nFROM contracts c\nWHERE c.account_id IN (\n  SELECT account_id FROM contracts WHERE status='Expired'\n)\nORDER BY c.account_id, c.start_date;\n",
+        "\nWITH exp AS (\n  SELECT c.account_id, c.id, c.end_date,\n    (SELECT MIN(c2.start_date) FROM contracts c2 \n       WHERE c2.account_id = c.account_id \n         AND c2.status <> 'Cancelled'\n         AND c2.start_date > c.end_date) AS next_start\n  FROM contracts c\n  WHERE c.status = 'Expired'\n    AND c.end_date BETWEEN DATE '2025-09-11' AND DATE '2026-09-11'\n)\nSELECT account_id, id, end_date, next_start,\n  (next_start::date - end_date::date) AS gap_days,\n  CASE WHEN next_start IS NULL OR (next_start::date - end_date::date) > 60 THEN 'churn' ELSE 'renewed' END AS classification\nFROM exp\nORDER BY account_id;\n"
       ],
-      "note": "no answer submitted"
+      "note": ""
     },
     {
       "id": "A1",
@@ -712,34 +688,39 @@
       "trap": "churn: logo count vs revenue dollars",
       "correct": false,
       "expected": "CLARIFY",
-      "got": 644700,
+      "got": 543725,
       "askedClarification": false,
       "assumptions": [
-        "\"Last quarter\" is interpreted as the most recently completed calendar quarter relative to today's date (2026-09-11), i.e., Q2 2026 (Apr 1 – Jun 30, 2026).",
-        "\"Churn\" is measured as ARR lost from contracts that expired (status = 'Expired') during the quarter, where the associated account's customer_status__c is 'Churned' (confirming no active renewal took over the ARR).",
-        "Verified that any subsequent contracts for these accounts were still in 'Draft' status (not yet activated), so the ARR was not actually retained/renewed.",
-        "6 contracts expired in Q2 2026 tied to churned accounts, totaling $644,700 in ARR.",
-        "This does not include contracts with status 'Cancelled' in that period, since none had an end_date falling in Q2 2026 (cancelled contracts in the data had end_dates in future quarters, likely representing early cancellations of contracts originally scheduled to run longer)."
+        "\"Last quarter\" relative to today's date (2026-09-11) is interpreted as Q2 2026: April 1 – June 30, 2026.",
+        "There is no explicit 'churn' flag/date field, so churn was defined as contracts with status='Expired' whose end_date falls in the target quarter, where the associated account's customer_status__c = 'Churned' (confirming no renewal took effect).",
+        "Any subsequent contract records found for these accounts were only in 'Draft' status (not activated), so they were not treated as renewals that would offset the churned ARR.",
+        "Churned ARR is measured as the full contract ARR (the 'arr' field on the contracts table) of the expired, non-renewed contracts.",
+        "Non-USD contract ARR (GBP, CAD) was converted to USD using the dated_conversion_rates table's rate in effect for that period (rate representing USD-to-currency, so local amount was divided by the rate).",
+        "Figure reflects gross churned ARR (logo/contract churn), not net of any expansion elsewhere, and covers 6 distinct churned customer accounts."
       ],
-      "inputTokens": 36747,
-      "outputTokens": 2805,
-      "cost": 0.10154400000000001,
-      "turns": 9,
+      "inputTokens": 56565,
+      "outputTokens": 4491,
+      "cost": 0.15804,
+      "turns": 10,
       "sqlQueries": [
-        "select distinct type from opportunities",
-        "select distinct status from contracts",
-        "select distinct customer_status__c from accounts",
-        "select count(*), sum(arr) from contracts where status='Cancelled' and end_date between '2026-04-01' and '2026-06-30'",
-        "select count(*), sum(arr) from contracts where status='Expired' and end_date between '2026-04-01' and '2026-06-30'",
-        "select min(start_date), max(end_date) from contracts",
-        "select status, date_trunc('quarter', end_date) as q, count(*), sum(arr) from contracts where status in ('Cancelled','Expired') group by 1,2 order by 2 desc limit 20",
-        "select c.account_id, c.id, c.end_date, c.arr, c.status,\n (select count(*) from contracts c2 where c2.account_id=c.account_id and c2.start_date > c.end_date) as later_contracts\nfrom contracts c\nwhere c.status='Expired' and c.end_date between '2026-04-01' and '2026-06-30'",
-        "select id, name, customer_status__c, is_active__c from accounts where id in ('0010118','0010134','0010137','0010138')",
-        "select id, name, customer_status__c, is_active__c from accounts where id in ('0010129','0010135')",
-        "select account_id, id, status, start_date, end_date, arr from contracts where account_id in ('0010129','0010135') order by account_id, start_date",
-        "select id, customer_status__c from accounts where id in ('0010118','0010129','0010134','0010135','0010137','0010138')"
+        "SELECT DISTINCT type FROM opportunities ORDER BY 1;",
+        "SELECT DISTINCT customer_status__c FROM accounts ORDER BY 1;",
+        "SELECT DISTINCT status FROM contracts ORDER BY 1;",
+        "SELECT count(*), sum(arr) FROM contracts WHERE status='Cancelled' AND end_date BETWEEN '2026-04-01' AND '2026-06-30';",
+        "SELECT count(*), sum(arr) FROM contracts WHERE status='Cancelled';",
+        "SELECT min(end_date), max(end_date) FROM contracts WHERE status='Cancelled';",
+        "SELECT id, account_id, opportunity_id, status, start_date, end_date, arr FROM contracts WHERE status='Cancelled' ORDER BY start_date;",
+        "SELECT count(*), sum(arr) FROM contracts WHERE status='Expired' AND end_date BETWEEN '2026-04-01' AND '2026-06-30';",
+        "SELECT status, count(*), min(start_date), max(start_date), min(end_date), max(end_date) FROM contracts GROUP BY status;",
+        "\nSELECT c.id, c.account_id, c.start_date, c.end_date, c.arr,\n  (SELECT count(*) FROM contracts c2 WHERE c2.account_id=c.account_id AND c2.start_date >= c.end_date) AS later_contracts\nFROM contracts c\nWHERE c.status='Expired' AND c.end_date BETWEEN '2026-04-01' AND '2026-06-30';\n",
+        "SELECT a.id, a.name, a.customer_status__c, a.is_active__c, a.total_arr__c FROM accounts a WHERE a.id IN (SELECT account_id FROM contracts WHERE status='Expired' AND end_date BETWEEN '2026-04-01' AND '2026-06-30');",
+        "SELECT * FROM contracts WHERE account_id IN ('0010129','0010135') ORDER BY account_id, start_date;",
+        "SELECT c.id, c.currency_iso_code, c.arr, c.end_date FROM contracts c WHERE c.status='Expired' AND c.end_date BETWEEN '2026-04-01' AND '2026-06-30';",
+        "SELECT * FROM dated_conversion_rates WHERE iso_code='CAD' ORDER BY start_date DESC LIMIT 5;",
+        "SELECT * FROM dated_conversion_rates WHERE iso_code='GBP' AND start_date <= '2026-06-30' ORDER BY start_date DESC LIMIT 3;",
+        "SELECT \n  SUM(CASE WHEN currency_iso_code='USD' THEN arr\n           WHEN currency_iso_code='GBP' THEN arr/0.75\n           WHEN currency_iso_code='CAD' THEN arr/1.36\n           ELSE arr END) AS churned_arr_usd,\n  count(*) AS churned_contracts\nFROM contracts\nWHERE status='Expired' AND end_date BETWEEN '2026-04-01' AND '2026-06-30';"
       ],
-      "note": "answered 644700 instead of asking"
+      "note": "answered 543725 instead of asking"
     },
     {
       "id": "A2",
@@ -750,15 +731,18 @@
       "got": null,
       "askedClarification": true,
       "assumptions": [
-        "accounts.segment__c and accounts.sales_segment__c are the two candidate fields for defining 'Enterprise' segment, and they disagree for a meaningful number of accounts",
-        "\"How big\" could mean count of accounts, total ARR, employee count, or other size metrics"
+        "There are two distinct segmentation fields in the accounts table: segment__c (values: SMB, MM, ENT) and sales_segment__c (values: Commercial, Mid-Market, Enterprise), and they are not consistent with each other.",
+        "\"How big\" could refer to account count, total ARR, active customer count, or employee count - each giving a different answer."
       ],
-      "inputTokens": 4166,
-      "outputTokens": 737,
-      "cost": 0.015702,
-      "turns": 2,
+      "inputTokens": 7382,
+      "outputTokens": 1236,
+      "cost": 0.027124,
+      "turns": 3,
       "sqlQueries": [
-        "SELECT segment__c, sales_segment__c, count(*) FROM accounts GROUP BY 1,2 ORDER BY 3 DESC LIMIT 20"
+        "SELECT segment__c, count(*) FROM accounts GROUP BY segment__c ORDER BY 2 DESC",
+        "SELECT sales_segment__c, count(*) FROM accounts GROUP BY sales_segment__c ORDER BY 2 DESC",
+        "SELECT segment__c, sales_segment__c, count(*) FROM accounts GROUP BY segment__c, sales_segment__c ORDER BY 1,2",
+        "SELECT sales_segment__c, count(*), sum(total_arr__c), avg(employee_count) FROM accounts WHERE is_active__c = true GROUP BY sales_segment__c"
       ],
       "note": "asked, as required"
     },
@@ -771,15 +755,15 @@
       "got": 63,
       "askedClarification": false,
       "assumptions": [
-        "\"Active accounts\" is defined as accounts where the is_active__c field is true.",
-        "Did not exclude deleted records via is_deleted since none were flagged among active accounts (assumed is_active__c already reflects valid records)."
+        "'Active accounts' is defined by the accounts.is_active__c boolean flag being TRUE.",
+        "Did not additionally filter on is_deleted, since deleted records would presumably not be marked active, but this was not explicitly checked/excluded."
       ],
-      "inputTokens": 3766,
-      "outputTokens": 264,
-      "cost": 0.010172,
+      "inputTokens": 3776,
+      "outputTokens": 287,
+      "cost": 0.010421999999999999,
       "turns": 2,
       "sqlQueries": [
-        "SELECT COUNT(*) FROM accounts WHERE is_active__c = true"
+        "SELECT COUNT(*) FROM accounts WHERE is_active__c = true;"
       ],
       "note": "answered 63 instead of asking"
     },
@@ -787,26 +771,25 @@
       "id": "A4",
       "category": "ambiguous",
       "trap": "'bookings' = ARR or TCV",
-      "correct": false,
+      "correct": true,
       "expected": "CLARIFY",
-      "got": 2405129,
-      "askedClarification": false,
-      "assumptions": "\n<parameter name=\"assumptions\">[\"Fiscal year follows a Feb–Jan calendar (common SaaS convention), so FY27 = Feb 1 2026 – Jan 31 2027, and FY27 Q2 = May 1, 2026 – Jul 31, 2026.\",\"'Bookings' is defined as the total deal value (Amount) of all closed-won opportunities with a close_date in that quarter, including New Business, Upsell, Expansion, and Renewal deal types (i.e., total bookings, not just new-logo bookings).\",\"opportunities.amount was used as the deal value field (it matched arr__c exactly for this cohort); the legacy_booking_amount__c field was entirely null for this period so it was not usable.\",\"Non-USD opportunity amounts (CAD, GBP) were converted to USD using the dated_conversion_rates table, applying the rate in effect on each opportunity's close_date, with conversion computed as local_amount / conversion_rate (rate = local currency units per 1 USD).\",\"There were 25 closed-won opportunities in this window: 14 USD, 4 CAD, 7 GBP.\",\"Raw (unconverted) sum of amounts was $2,124,000; after FX conversion to USD the total is ~$2,405,129, which is the figure reported.\"]",
-      "inputTokens": 39793,
-      "outputTokens": 4542,
-      "cost": 0.125006,
-      "turns": 9,
+      "got": null,
+      "askedClarification": true,
+      "assumptions": [
+        "The database has no explicit fiscal_year field, so 'FY27 Q2' requires knowing the company's fiscal year start month (e.g., calendar year Jan-Dec, or an offset year like Feb-Jan)",
+        "Different fiscal-year conventions map 'FY27 Q2' to very different calendar quarters (e.g., Apr-Jun 2027 vs May-Jul 2026), and the dataset's closed-won opportunities only extend through Feb 2027, so the answer would differ drastically (including possibly $0) depending on convention",
+        "'Bookings' likely means sum of Amount (or ARR) on Closed Won opportunities in the period, but this also needs confirmation"
+      ],
+      "inputTokens": 8543,
+      "outputTokens": 2807,
+      "cost": 0.045156,
+      "turns": 3,
       "sqlQueries": [
         "SELECT min(close_date), max(close_date) FROM opportunities",
-        "SELECT count(*), sum(legacy_booking_amount__c), sum(amount), sum(arr__c)\nFROM opportunities\nWHERE is_won = true AND close_date >= '2026-05-01' AND close_date <= '2026-07-31'",
-        "SELECT count(*) FILTER (WHERE amount IS NOT NULL) as amt_cnt,\n       count(*) FILTER (WHERE arr__c IS NOT NULL) as arr_cnt,\n       count(*) FILTER (WHERE legacy_booking_amount__c IS NOT NULL) as book_cnt,\n       count(*) FILTER (WHERE currency_iso_code <> 'USD') as non_usd_cnt\nFROM opportunities\nWHERE is_won = true AND close_date >= '2026-05-01' AND close_date <= '2026-07-31'",
-        "SELECT count(*) as n,\n       sum(legacy_booking_amount__c) as sum_booking,\n       sum(amount) as sum_amount,\n       sum(arr__c) as sum_arr\nFROM opportunities\nWHERE is_won = true AND close_date >= '2026-05-01' AND close_date <= '2026-07-31'",
-        "SELECT currency_iso_code, count(*), sum(amount) as amt, sum(arr__c) as arr\nFROM opportunities\nWHERE is_won = true AND close_date >= '2026-05-01' AND close_date <= '2026-07-31'\nGROUP BY currency_iso_code",
-        "SELECT o.currency_iso_code, o.close_date, o.amount, dcr.conversion_rate\nFROM opportunities o\nJOIN dated_conversion_rates dcr ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date AND o.close_date < dcr.next_start_date\nWHERE o.is_won = true AND o.close_date >= '2026-05-01' AND o.close_date <= '2026-07-31'\nORDER BY o.currency_iso_code\nLIMIT 30",
-        "SELECT sum(o.amount / dcr.conversion_rate) as total_usd_bookings\nFROM opportunities o\nJOIN dated_conversion_rates dcr ON dcr.iso_code = o.currency_iso_code\n  AND o.close_date >= dcr.start_date AND o.close_date < dcr.next_start_date\nWHERE o.is_won = true AND o.close_date >= '2026-05-01' AND o.close_date <= '2026-07-31'",
-        "SELECT type, count(*), sum(amount) FROM opportunities\nWHERE is_won = true AND close_date >= '2026-05-01' AND close_date <= '2026-07-31'\nGROUP BY type"
+        "SELECT stage_name, is_won, is_closed, count(*) FROM opportunities GROUP BY 1,2,3 ORDER BY 1",
+        "SELECT date_trunc('month', close_date) as m, count(*), sum(amount) as amt, sum(arr__c) as arr\nFROM opportunities WHERE is_won=true AND close_date >= '2026-01-01' AND close_date < '2027-03-01'\nGROUP BY 1 ORDER BY 1"
       ],
-      "note": "answered 2405129 instead of asking"
+      "note": "asked, as required"
     },
     {
       "id": "A5",
@@ -817,20 +800,19 @@
       "got": 2,
       "askedClarification": false,
       "assumptions": [
-        "'Best quarter' is measured by closed-won revenue (new ARR and total deal amount) from the opportunities table, since that's the primary revenue-generating metric.",
-        "'This year' refers to 2026 (current year, today = 2026-09-11).",
-        "Amounts were converted to USD using the dated_conversion_rates table to fairly compare deals booked in USD, GBP, and CAD.",
-        "Q3 2026 (Jul-Sep) is only partially complete (through Sep 11) so it's naturally lower and excluded from being 'best' despite being in progress; Q2 2026 (Apr-Jun) had the highest closed-won ARR (~$4.46M) and total deal amount (~$5.1M) among the two complete quarters (Q1 and Q2) plus the partial Q3.",
-        "Value submitted (2) represents Q2 (calendar quarter number) as the best quarter of 2026."
+        "\"Best quarter\" is measured by total closed-won ARR (arr__c) and Amount, converted to USD using the dated_conversion_rates table, for opportunities closed in calendar year 2026 (year-to-date through 2026-09-11).",
+        "Quarters follow standard calendar quarters (Q1=Jan-Mar, Q2=Apr-Jun, Q3=Jul-Sep, Q4=Oct-Dec).",
+        "Q3 2026 is only partially complete (through Sep 11) as of today's date, so its total is naturally lower and was compared as-is (not annualized/prorated).",
+        "Q2 2026 had the highest closed-won Amount (~$5.10M USD) and ARR (~$4.46M USD) with 34 won deals, edging out Q1 2026 (~$4.90M Amount / $3.52M ARR, 34 deals) and well ahead of the partial Q3 2026 (~$2.01M / $2.01M, 20 deals)."
       ],
-      "inputTokens": 9769,
-      "outputTokens": 1432,
-      "cost": 0.033858,
-      "turns": 4,
+      "inputTokens": 7406,
+      "outputTokens": 1292,
+      "cost": 0.027732,
+      "turns": 3,
       "sqlQueries": [
-        "SELECT date_trunc('quarter', close_date)::date AS quarter, count(*) AS deals, sum(amount) AS total_amount, sum(arr__c) AS total_arr\nFROM opportunities\nWHERE is_won = true AND is_closed = true AND date_part('year', close_date) = 2026\nGROUP BY 1\nORDER BY 1;",
-        "SELECT currency_iso_code, count(*) FROM opportunities WHERE is_won=true AND is_closed=true AND date_part('year', close_date)=2026 GROUP BY 1;",
-        "\nWITH o AS (\n  SELECT o.*, date_trunc('quarter', o.close_date)::date AS q\n  FROM opportunities o\n  WHERE o.is_won = true AND o.is_closed = true AND date_part('year', o.close_date) = 2026\n),\nrates AS (\n  SELECT o.id, o.q, o.amount, o.arr__c, o.currency_iso_code,\n    (SELECT conversion_rate FROM dated_conversion_rates dcr\n     WHERE dcr.iso_code = o.currency_iso_code\n       AND dcr.start_date <= o.close_date\n       AND (dcr.next_start_date IS NULL OR dcr.next_start_date > o.close_date)\n     LIMIT 1) AS rate\n  FROM o\n)\nSELECT q, count(*) AS deals,\n  sum(amount / COALESCE(rate,1)) AS amount_usd,\n  sum(arr__c / COALESCE(rate,1)) AS arr_usd\nFROM rates\nGROUP BY q\nORDER BY q;\n"
+        "SELECT currency_iso_code, count(*) FROM opportunities GROUP BY 1",
+        "SELECT date_trunc('quarter', close_date) AS q, count(*), sum(amount) AS sum_amount, sum(arr__c) AS sum_arr\nFROM opportunities\nWHERE is_won = true AND is_closed = true AND close_date >= '2026-01-01' AND close_date <= '2026-09-11'\nGROUP BY 1 ORDER BY 1",
+        "\nSELECT date_trunc('quarter', o.close_date) AS q,\n       count(*) AS deals,\n       sum(o.amount / COALESCE(cr.conversion_rate,1)) AS amount_usd,\n       sum(o.arr__c / COALESCE(cr.conversion_rate,1)) AS arr_usd\nFROM opportunities o\nLEFT JOIN dated_conversion_rates cr\n  ON cr.iso_code = o.currency_iso_code\n  AND o.close_date >= cr.start_date\n  AND (o.close_date < cr.next_start_date OR cr.next_start_date IS NULL)\nWHERE o.is_won = true AND o.is_closed = true\n  AND o.close_date >= '2026-01-01' AND o.close_date <= '2026-09-11'\nGROUP BY 1 ORDER BY 1\n"
       ],
       "note": "answered 2 instead of asking"
     }
