@@ -25,6 +25,15 @@ import { Client } from "pg";
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
+/**
+ * As-of date. The benchmark is anchored to a fixed reporting date so results
+ * are reproducible: with current_date, a contract expiring overnight silently
+ * changes the customer count and every number derived from it.
+ * Override with REPORT_DATE=2026-10-01 to run an as-of report for another day.
+ */
+const AS_OF = process.env.REPORT_DATE ?? "2026-09-11";
+const TODAY = `date '${AS_OF}'`;
+
 const db = new Client({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("127.0.0.1") ? undefined : { rejectUnauthorized: false },
@@ -47,7 +56,7 @@ const ACTIVE = `
     select c.*, coalesce(a.parent_account_id, a.id) as customer_id, a.id as acct_id
     from contracts c join clean_acc a on a.id = c.account_id
     where c.status not in ('Draft','Cancelled')
-      and current_date between c.start_date and c.end_date
+      and ${TODAY} between c.start_date and c.end_date
   )`;
 
 const USD = `
@@ -55,7 +64,7 @@ const USD = `
     select ac.*, ac.arr / fx.conversion_rate as arr_usd
     from active_contract ac
     join dated_conversion_rates fx on fx.iso_code = ac.currency_iso_code
-      and current_date >= fx.start_date and current_date < fx.next_start_date
+      and ${TODAY} >= fx.start_date and ${TODAY} < fx.next_start_date
   )`;
 
 const WON = `
@@ -156,7 +165,7 @@ const TOOLS = [
         expansion_only: { type: "boolean", default: false,
           description: "If true, count only Expansion/Upsell and exclude New Business." },
         to_date: { type: "boolean", default: false,
-          description: "If true, stop at today rather than the end of the period." },
+          description: "If true, stop at the reporting date rather than the end of the period." },
       },
       required: ["period"],
     },
@@ -308,7 +317,7 @@ async function dispatch(name: string, a: any): Promise<Out> {
       }
       if (a.product_usage === "zero_last_month") {
         join += ` join product_usage_monthly u on u.account_id = ac.acct_id
-                  and u.month = date_trunc('month', current_date - interval '1 month')::date`;
+                  and u.month = date_trunc('month', ${TODAY} - interval '1 month')::date`;
         cond.push(`u.active_users = 0`);
       }
       const value = await one(
@@ -353,7 +362,7 @@ async function dispatch(name: string, a: any): Promise<Out> {
 
     case "get_new_arr": {
       const { start, end, label } = resolvePeriod(a.period);
-      const endDate = a.to_date ? "current_date" : `$2`;
+      const endDate = a.to_date ? TODAY : `$2`;
       const types = a.expansion_only ? `('Expansion','Upsell')` : NEW_TYPES;
       const params = a.to_date ? [start] : [start, end];
       const value = await one(
@@ -414,7 +423,7 @@ async function dispatch(name: string, a: any): Promise<Out> {
       const base = `
         from contracts c join accounts a on a.id = c.account_id
         where c.status = 'Expired'
-          and c.end_date between current_date - ($1 || ' months')::interval and current_date
+          and c.end_date between ${TODAY} - ($1 || ' months')::interval and ${TODAY}
           and a.is_deleted = false and a.type <> 'Test'
           and not exists (select 1 from contracts c2 where c2.account_id = c.account_id
             and c2.status not in ('Draft','Cancelled') and c2.end_date > c.end_date + 60)`;
@@ -492,7 +501,7 @@ async function dispatch(name: string, a: any): Promise<Out> {
         return {
           value: await one(`${W(CLEAN, ACTIVE)}
             select count(*) from product_usage_monthly u join clean_acc a on a.id = u.account_id
-            where u.month = date_trunc('month', current_date - interval '1 month')::date
+            where u.month = date_trunc('month', ${TODAY} - interval '1 month')::date
               and u.active_users > 0
               and u.account_id not in (select acct_id from active_contract)`),
           definition_used: "Accounts with product usage last month but no contract in force (pilots and trials).",
@@ -566,7 +575,7 @@ async function dispatch(name: string, a: any): Promise<Out> {
 // ===========================================================================
 // Wire up MCP
 // ===========================================================================
-export const SERVER_INSTRUCTIONS = `You are a RevOps analyst at Parcelwise, a B2B logistics SaaS company. Today is 2026-09-11.
+export const SERVER_INSTRUCTIONS = `You are a RevOps analyst at Parcelwise, a B2B logistics SaaS company. Today is ${AS_OF}.
 
 You answer business questions using the tools below. You do NOT have raw database access, and you do not need it: every tool already enforces Parcelwise's official definitions.
 
