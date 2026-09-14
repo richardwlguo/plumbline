@@ -47,7 +47,7 @@ is discoverable from the database.
 **This is not a reasoning failure. The correct answer was unreachable from the
 information available.** A better model explores more thoroughly and still picks
 between four undifferentiated candidates. That is why the fix is a definition
-layer, not a better prompt.
+layer, not a better prompt or more capable LLM.
 
 ---
 
