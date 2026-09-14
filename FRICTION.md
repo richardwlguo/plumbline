@@ -115,6 +115,20 @@ workflows, with per-workflow scoping on top rather than per-workflow rebuilds.
 
 ---
 
+## 7.  Harness scored formatting instead of content 
+
+**What happened.** Answers were collected through a submit answer tool that also 
+had the stated assumptions and a needs clarification tag. A model that finished 
+reasoning just wrote the answer instead of having it within a sentence. The conversation
+loop ended up breaking and even though it would get the right answer it would 
+come back as no answer submitted.
+
+**Why it matters.** The error was not possible to see from the results since they
+only wrote "no answer submitted." From an outside perspective this wouldn't seem 
+like an issue but it broke my expectations which is why I further investigated it.
+
+---
+
 ## Open question I could not resolve
 
 Two of the five ambiguous questions ("how many active accounts," "which quarter
