@@ -105,6 +105,13 @@ ambiguous questions from 2/5 to 5/5.
 Every tool returns `definition_used` alongside its value, so stated assumptions
 are a property of the system rather than something the model has to remember.
 
+**Tool Coverage.** The tool coverage was designed with the question set in view.
+The 12 tools were built to serve this ReveOps workflow, and 31 questions define 
+that workflow, so coverage is inherently going to be good. This was meant to measure
+how much a well scoped governed layer helps, no thow one handles questions that 
+nobody anticipated. A fair extension would be a set of questions written after the 
+tool was created.
+
 ---
 
 ## Reproduce it
