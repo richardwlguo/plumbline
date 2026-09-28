@@ -1,4 +1,4 @@
-# Checkr - Credal Study
+# Plumbline
 
 **A RevOps benchmark on deliberately messy CRM data. Claude scored 38.7% with raw
 database access and 96.8% behind a scoped MCP server that enforces written
